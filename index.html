@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR" ng-app="tfApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TF - Tenha Fé | Lobby</title>
+  <!-- Google Fonts para tipografia moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- AngularJS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <!-- Socket.io -->
+  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  
+  <style>
+    /* Design System e Dark Mode */
+    :root {
+      --bg-color: #1a1a1a;
+      --panel-bg: #262626;
+      --text-main: #f0f0f0;
+      --text-muted: #a0a0a0;
+      --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      --primary-hover: linear-gradient(135deg, #1af0fc 0%, #68b8ff 100%);
+      --secondary-bg: #333333;
+      --secondary-hover: #444444;
+      --border-color: #404040;
+      --focus-ring: rgba(79, 172, 254, 0.4);
+      --success-bg: rgba(79, 172, 254, 0.1);
+      --success-text: #4facfe;
+      --error-bg: rgba(255, 79, 79, 0.1);
+      --error-text: #ff4f4f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      background-image: radial-gradient(circle at 50% -20%, #2a3a4a 0%, #1a1a1a 80%);
+    }
+
+    .lobby-container {
+      background-color: var(--panel-bg);
+      padding: 50px 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .logo {
+      margin-bottom: 40px;
+    }
+
+    .logo h1 {
+      font-size: 4rem;
+      margin: 0;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+      text-shadow: 0 4px 20px rgba(79, 172, 254, 0.3);
+    }
+
+    .logo h2 {
+      font-size: 1.1rem;
+      margin: 5px 0 0 0;
+      font-style: italic;
+      color: var(--text-muted);
+      font-weight: 400;
+      letter-spacing: 1px;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background-color: #121212;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .input-group input:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--secondary-hover);
+      border-color: #555;
+    }
+
+    .room-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: stretch;
+    }
+
+    .room-actions input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background-color: #121212;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+      text-transform: uppercase;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    
+    .room-actions input:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 0 4px var(--focus-ring);
+    }
+
+    .room-actions .btn {
+      flex: 0 0 auto;
+      padding: 0 25px;
+    }
+
+    .message {
+      margin-top: 25px;
+      padding: 16px;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .message.success {
+      background-color: var(--success-bg);
+      border: 1px solid rgba(79, 172, 254, 0.3);
+      color: var(--success-text);
+    }
+
+    .message.error {
+      background-color: var(--error-bg);
+      border: 1px solid rgba(255, 79, 79, 0.3);
+      color: var(--error-text);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Ocultar bindings do AngularJS até carregar */
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+      display: none !important;
+    }
+
+    /* Room & Table Styles */
+    .room-header, .table-header {
+      margin-bottom: 30px;
+    }
+    
+    .room-code-display {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #4facfe;
+      letter-spacing: 5px;
+      margin: 15px 0;
+      padding: 15px;
+      background: #121212;
+      border-radius: 10px;
+      border: 1px dashed #4facfe;
+    }
+
+    .players-list {
+      text-align: left;
+      margin-bottom: 30px;
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 15px;
+      border: 1px solid var(--border-color);
+    }
+    
+    .players-list h3 {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .player-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: #2a2a2a;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    
+    .player-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .player-avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-right: 12px;
+    }
+
+    /* Playing Cards UI */
+    .playing-card {
+      background: #fcfaf5; /* Creme claro */
+      border-radius: 8px;
+      width: 80px;
+      height: 115px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      position: relative;
+      border: 1px solid rgba(0,0,0,0.1);
+      font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    }
+    .playing-card.disabled-card {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    .playing-card:not(.disabled-card) {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .playing-card:not(.disabled-card):hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .playing-card .top-left {
+      position: absolute;
+      top: 6px;
+      left: 8px;
+      font-size: 1rem;
+    }
+    .playing-card .bottom-right {
+      position: absolute;
+      bottom: 6px;
+      right: 8px;
+      font-size: 1rem;
+      transform: rotate(180deg);
+    }
+
+    .trump-area {
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .trump-area span {
+      margin-bottom: 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hand-area {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Stepper & Betting */
+    .betting-area {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-top: 30px;
+    }
+    
+    .stepper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+    }
+    
+    .btn-stepper {
+      background: #121212;
+      color: #00f2fe;
+      border: 2px solid #00f2fe;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .btn-stepper:hover {
+      background: rgba(0, 242, 254, 0.1);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+    }
+    .btn-stepper:active {
+      transform: scale(0.9);
+    }
+    
+    .stepper-value {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 15px rgba(255,255,255,0.3);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    .bet-error {
+      color: #ff4f4f;
+      background: rgba(255, 79, 79, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid rgba(255,79,79,0.3);
+    }
+    
+    .waiting-turn {
+      color: var(--text-muted);
+      margin-top: 30px;
+      font-style: italic;
+      padding: 20px;
+      background: #1e1e1e;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body ng-controller="LobbyController" ng-cloak>
+
+  <div class="lobby-container">
+    <div class="logo">
+      <h1>TF</h1>
+      <h2>Tenha Fé</h2>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div ng-if="currentView === 'login'">
+      <div class="input-group">
+        <label for="nickname">Seu Apelido</label>
+        <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" ng-click="quickMatch()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Jogar Agora
+        </button>
+        
+        <button class="btn btn-secondary" ng-click="createRoom()">Criar Sala Privada</button>
+        
+        <div class="room-actions">
+          <input type="text" ng-model="data.roomCodeInput" placeholder="CÓDIGO" maxlength="4">
+          <button class="btn btn-secondary" ng-click="joinRoom()">Entrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TELA DA SALA (LOBBY) -->
+    <div ng-if="currentView === 'room'">
+      <div class="room-header">
+        <h2 style="font-size: 1.1rem; color: var(--text-muted); font-weight: 400;">Código da Sala</h2>
+        <div class="room-code-display">{{ currentRoomCode }}</div>
+      </div>
+
+      <div class="players-list">
+        <h3>Jogadores ({{ players.length }}/5)</h3>
+        <div class="player-item" ng-repeat="player in players">
+          <div class="player-avatar">{{ player.name.charAt(0).toUpperCase() }}</div>
+          {{ player.name }}
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()">
+        Iniciar Partida
+      </button>
+    </div>
+
+    <!-- TELA DA MESA DE JOGO -->
+    <div ng-if="currentView === 'table'">
+      <div class="table-header">
+        <h2 style="color: var(--text-main); font-size: 1.5rem;">Rodada {{ currentRound }}</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Fase de Apostas (Canto)</p>
+      </div>
+
+      <!-- Trunfo -->
+      <div class="trump-area" ng-if="currentTrump">
+        <span>Trunfo da Rodada</span>
+        <div class="playing-card disabled-card" ng-style="{'color': getCardColor(currentTrump.suit)}">
+          <div class="top-left">{{ currentTrump.value }}</div>
+          <div style="font-size: 3rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(currentTrump.suit) }}</div>
+          <div class="bottom-right">{{ currentTrump.value }}</div>
+        </div>
+      </div>
+
+      <!-- Mesa de Jogo (Cartas Jogadas) -->
+      <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0" style="margin: 30px 0;">
+        <h3 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 15px;">Mesa</h3>
+        <div class="hand-area" style="min-height: 125px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px dashed #555;">
+          <div class="playing-card disabled-card" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
+            <div class="top-left">{{ tc.card.value }}</div>
+            <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
+            <div class="bottom-right">{{ tc.card.value }}</div>
+            <div style="position: absolute; bottom: -28px; font-size: 0.8rem; color: #fff; background: var(--secondary-hover); padding: 3px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">{{ tc.playerName }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mão do Jogador -->
+      <h3 style="font-size: 1rem; color: var(--text-muted); text-align: left; margin-top: 30px;">Sua Mão</h3>
+      <div class="hand-area">
+        <div class="playing-card" ng-class="{'disabled-card': !isMyTurn || roomStatus !== 'PLAYING'}" ng-style="{'color': getCardColor(card.suit)}" ng-repeat="card in myHand track by $index" ng-click="playCard(card)">
+          <div class="top-left">{{ card.value }}</div>
+          <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(card.suit) }}</div>
+          <div class="bottom-right">{{ card.value }}</div>
+        </div>
+      </div>
+
+      <!-- Fase de Apostas -->
+      <div class="betting-area" ng-if="roomStatus === 'BETTING' && isMyTurn">
+        <h3 style="color: var(--text-main); margin-bottom: 20px;">Sua vez de apostar!</h3>
+        
+        <div class="stepper">
+          <button class="btn-stepper" ng-click="decrementBet()">-</button>
+          <div class="stepper-value">{{ betValue }}</div>
+          <button class="btn-stepper" ng-click="incrementBet()">+</button>
+        </div>
+
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.2rem; padding: 15px;" ng-click="makeBet()">Confirmar Aposta</button>
+
+        <div class="bet-error" ng-show="betError">
+          {{ betError }}
+        </div>
+      </div>
+      
+      <div class="waiting-turn" ng-if="roomStatus === 'BETTING' && !isMyTurn">
+        Aguardando outros jogadores apostarem...
+      </div>
+    </div>
+
+    <div class="message" ng-class="messageType" ng-show="message">
+      {{ message }}
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
