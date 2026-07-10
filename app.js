@@ -45,12 +45,23 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   // Estado do Jogo
   $scope.currentRound = 0;
   $scope.currentTrump = null;
+  $scope.cardsPerPlayer = 5; // Limite do stepper (= vidas atuais do jogador)
   $scope.myHand = [];
   $scope.tableCards = [];
   $scope.roomStatus = '';
   $scope.isMyTurn = false;
   $scope.betValue = 0;
   $scope.betError = '';
+
+  // Histórico e Notificações
+  $scope.roundHistory = [];
+  $scope.showHistoryModal = false;
+  $scope.toastMessage = null;
+  $scope.toastClass = '';
+
+  // Fim de rodada / Jogo
+  $scope.roundResults = [];
+  $scope.gameOver = null;
 
   $scope.message = '';
   $scope.messageType = 'success';
@@ -114,7 +125,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   // Stepper de Apostas
   $scope.incrementBet = function() {
-    if ($scope.betValue < $scope.currentRound) {
+    if ($scope.betValue < $scope.cardsPerPlayer) {
       $scope.betValue++;
       $scope.betError = '';
     }
@@ -167,9 +178,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentView = 'table';
     $scope.roomStatus = 'BETTING';
     $scope.currentRound = data.round;
+    $scope.cardsPerPlayer = data.cardsPerPlayer || 5;
     $scope.currentTrump = data.trump;
     $scope.betValue = 0;
     $scope.betError = '';
+    $scope.roundHistory = [];
     showMessage('Fase de apostas iniciada!', 'success');
   });
 
@@ -198,13 +211,62 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = data.tableCards;
   });
 
+  socket.on('history_updated', function(data) {
+    $scope.roundHistory = data.history;
+  });
+
   socket.on('trick_resolved', function(data) {
     if (data.isTie) {
-      // Usar a mesma func, porém com formatação se precisarmos, por enquanto 'error' serve pra destaque
-      showMessage('🔥 Bucha! Ninguém levou a vaza!', 'error');
+      $scope.toastMessage = 'BUCHA! ' + data.starterName + ' mantém a vez!';
+      $scope.toastClass = 'neon-red';
     } else {
-      showMessage('🏆 ' + data.winnerName + ' levou a mão!', 'success');
+      $scope.toastMessage = data.winnerName + ' levou a mão com ' + data.winningCard.value + ' ' + $scope.getSuitSymbol(data.winningCard.suit) + '!';
+      $scope.toastClass = 'neon-blue';
+      
+      // Destaca a carta ganhadora na mesa
+      if ($scope.tableCards) {
+        var winnerTc = $scope.tableCards.find(function(tc) { return tc.playerName === data.winnerName; });
+        if (winnerTc) winnerTc.isWinner = true;
+      }
     }
+
+    // Esconde o toast após 2.5s (um pouco mais que o delay do servidor pra cruzar com a limpeza da mesa)
+    $timeout(function() {
+      $scope.toastMessage = null;
+    }, 2500);
+  });
+
+  socket.on('player_eliminated', function(data) {
+    showMessage('🚭 ' + data.name + ' foi eliminado!', 'error');
+  });
+
+  socket.on('round_results', function(data) {
+    $scope.currentView = 'round_results';
+    $scope.roundResults = data.results;
+    $scope.tableCards = [];
+    $scope.myHand = [];
+    $scope.isMyTurn = false;
+    showMessage('Rodada finalizada! Nova rodada em 5 segundos...', 'success');
+  });
+
+  socket.on('new_round_started', function(data) {
+    $scope.currentView = 'table';
+    $scope.roomStatus = 'BETTING';
+    $scope.currentTrump = data.trump;
+    $scope.cardsPerPlayer = data.cardsPerPlayer || 5;
+    $scope.currentRound = data.cardsPerPlayer || 5;
+    $scope.betValue = 0;
+    $scope.betError = '';
+    $scope.roundHistory = [];
+    $scope.tableCards = [];
+    $scope.roundResults = [];
+    showMessage('Nova rodada começou!', 'success');
+  });
+
+  socket.on('game_over', function(data) {
+    $scope.currentView = 'game_over';
+    $scope.gameOver = data;
+    showMessage('🏆 Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
 
   socket.on('error', function(data) {

@@ -1,0 +1,42 @@
+<svg width="900" height="900" viewBox="0 0 900 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="blur1"/>
+      <feColorMatrix in="blur1" type="matrix" values="1 0 0 0 0  0 0.85 0 0 0  0 0 1 0 0  0 0 0 1 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .mark {
+        fill: none;
+        stroke: #2db7ff;
+        stroke-width: 11;
+        stroke-linecap: square;
+        stroke-linejoin: miter;
+        filter: url(#outerGlow);
+      }
+      .accent {
+        stroke: #2db7ff;
+        stroke-width: 7;
+        stroke-linecap: round;
+        filter: url(#outerGlow);
+      }
+      .wordmark {
+        fill: #2db7ff;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 54px;
+        font-weight: 700;
+        letter-spacing: 16px;
+      }
+    </style>
+  </defs>
+
+  <path class="mark" d="M170 195H430L378 247H311V545L365 600V247H222L170 195Z"/>
+  <path class="mark" d="M436 195H730L676 247H565L490 322V600L544 545V385H644L700 331H544V247H676L730 195H492L436 195Z"/>
+
+  <line class="accent" x1="112" y1="660" x2="240" y2="660"/>
+  <line class="accent" x1="660" y1="660" x2="788" y2="660"/>
+  <text class="wordmark" x="265" y="676">TENHA FÉ</text>
+</svg>

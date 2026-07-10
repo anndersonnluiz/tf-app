@@ -37,15 +37,21 @@
       padding: 0;
     }
 
+    html, body {
+      min-height: 100%;
+    }
+
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: 'Inter', sans-serif;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      align-items: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 24px 16px;
       background-image: radial-gradient(circle at 50% -20%, #2a3a4a 0%, #1a1a1a 80%);
     }
 
@@ -58,29 +64,34 @@
       max-width: 440px;
       text-align: center;
       animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      margin: 24px 0;
     }
 
     .logo {
-      margin-bottom: 40px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
-    .logo h1 {
-      font-size: 4rem;
-      margin: 0;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: 4px;
-      text-shadow: 0 4px 20px rgba(79, 172, 254, 0.3);
+    .logo img {
+      width: min(100%, 220px);
+      height: auto;
+      display: block;
     }
 
-    .logo h2 {
-      font-size: 1.1rem;
-      margin: 5px 0 0 0;
-      font-style: italic;
-      color: var(--text-muted);
-      font-weight: 400;
-      letter-spacing: 1px;
+    @media (max-height: 820px) {
+      .logo {
+        margin-bottom: 18px;
+      }
+
+      .logo img {
+        width: min(100%, 180px);
+      }
+
+      .lobby-container {
+        padding: 32px 28px;
+      }
     }
 
     .input-group {
@@ -326,6 +337,14 @@
       transform: translateY(-10px);
       box-shadow: 0 10px 20px rgba(0,0,0,0.5);
     }
+    
+    .glow-winner {
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.8) !important;
+      border: 2px solid #00f2fe !important;
+      transform: scale(1.05) !important;
+      z-index: 10;
+    }
+
     .playing-card .top-left {
       position: absolute;
       top: 6px;
@@ -429,14 +448,75 @@
       background: #1e1e1e;
       border-radius: 10px;
     }
+
+    /* Toast e Histórico */
+    .toast-overlay {
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 30px;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      z-index: 1000;
+      color: white;
+      text-align: center;
+      pointer-events: none;
+      animation: popIn 0.3s ease-out;
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+    .neon-red {
+      background: rgba(239, 68, 68, 0.9);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+      border: 2px solid #ef4444;
+    }
+    .neon-blue {
+      background: rgba(59, 130, 246, 0.9);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+      border: 2px solid #3b82f6;
+    }
+
+    /* Modal Simples */
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 900; display: flex; justify-content: center; align-items: center;
+    }
+    .history-modal {
+      background: #1e1e1e; padding: 25px; border-radius: 12px; min-width: 300px; max-width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border-color);
+    }
+    .history-item {
+      padding: 10px; border-bottom: 1px solid #333; color: white;
+    }
+    .history-item:last-child { border-bottom: none; }
   </style>
 </head>
 <body ng-controller="LobbyController" ng-cloak>
 
+  <!-- Overlay Toast -->
+  <div class="toast-overlay" ng-class="toastClass" ng-if="toastMessage">
+    {{ toastMessage }}
+  </div>
+
+  <!-- Modal de Histórico -->
+  <div class="modal-backdrop" ng-if="showHistoryModal" ng-click="showHistoryModal = false">
+    <div class="history-modal" ng-click="$event.stopPropagation()">
+      <h3 style="margin-bottom: 15px; color: var(--text-main);">Histórico da Rodada</h3>
+      <div ng-if="roundHistory.length === 0" style="color: var(--text-muted); font-style: italic;">Nenhuma vaza jogada ainda.</div>
+      <div class="history-item" ng-repeat="log in roundHistory track by $index">
+        <strong>Vaza {{ $index + 1 }}:</strong>
+        <span ng-if="log.isTie" style="color: #ef4444;">Bucha!</span>
+        <span ng-if="!log.isTie">{{ log.winnerName }} venceu com {{ log.winningCard.value }} {{ getSuitSymbol(log.winningCard.suit) }}</span>
+      </div>
+      <button class="btn btn-primary" style="margin-top: 20px; width: 100%; padding: 10px;" ng-click="showHistoryModal = false">Fechar</button>
+    </div>
+  </div>
+
   <div class="lobby-container">
     <div class="logo">
-      <h1>TF</h1>
-      <h2>Tenha Fé</h2>
+      <img src="./assets/logo-tf-transparent.png" alt="TF Tenha Fé">
     </div>
 
     <!-- TELA DE LOGIN -->
@@ -500,9 +580,12 @@
 
       <!-- Mesa de Jogo (Cartas Jogadas) -->
       <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0" style="margin: 30px 0;">
-        <h3 style="color: var(--text-main); font-size: 1.1rem; margin-bottom: 15px;">Mesa</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="color: var(--text-main); font-size: 1.1rem; margin: 0;">Mesa</h3>
+          <button class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 15px; font-size: 0.8rem; border-radius: 20px;" ng-click="showHistoryModal = true">Histórico</button>
+        </div>
         <div class="hand-area" style="min-height: 125px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px dashed #555;">
-          <div class="playing-card disabled-card" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
+          <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
             <div class="top-left">{{ tc.card.value }}</div>
             <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
             <div class="bottom-right">{{ tc.card.value }}</div>
@@ -541,6 +624,35 @@
       <div class="waiting-turn" ng-if="roomStatus === 'BETTING' && !isMyTurn">
         Aguardando outros jogadores apostarem...
       </div>
+    </div>
+
+    <!-- TELA DE RESULTADO DA RODADA -->
+    <div ng-if="currentView === 'round_results'" style="text-align: center; padding: 20px;">
+      <h2 style="color: var(--text-main); margin-bottom: 25px;">📊 Resultado da Rodada</h2>
+      <div style="background: #1e1e1e; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 12px 20px; background: rgba(0,0,0,0.4); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+          <span>Jogador</span><span>Apostou</span><span>Fez</span><span>Vidas</span>
+        </div>
+        <div ng-repeat="r in roundResults" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 15px 20px; border-top: 1px solid #333;" ng-style="{'opacity': r.eliminated ? 0.5 : 1}">
+          <span style="color: white; font-weight: 500;">{{ r.name }} <span ng-if="r.eliminated" style="color: #ef4444; font-size: 0.75rem;">(eliminado)</span></span>
+          <span style="color: #94a3b8;">{{ r.bet }}</span>
+          <span style="color: #94a3b8;">{{ r.tricksWon }}</span>
+          <span ng-style="{'color': r.penalty > 0 ? '#ef4444' : '#10b981'}">
+            {{ r.lives }} <span ng-if="r.penalty > 0" style="font-size: 0.8rem;">(-{{ r.penalty }})</span>
+          </span>
+        </div>
+      </div>
+      <p style="color: var(--text-muted); margin-top: 20px; font-style: italic;">Nova rodada começando em instantes...</p>
+    </div>
+
+    <!-- TELA DE FIM DE JOGO -->
+    <div ng-if="currentView === 'game_over'" style="text-align: center; padding: 40px 20px;">
+      <div style="font-size: 4rem; margin-bottom: 20px;">🏆</div>
+      <h2 style="color: #F59E0B; font-size: 2rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(245,158,11,0.5);">Fim de Jogo!</h2>
+      <p style="color: var(--text-main); font-size: 1.3rem; margin-bottom: 30px;">
+        <strong style="color: #00f2fe;">{{ gameOver.winner }}</strong> é o grande vencedor!
+      </p>
+      <button class="btn btn-primary" style="padding: 15px 40px; font-size: 1rem;" ng-click="currentView = 'login'">Jogar Novamente</button>
     </div>
 
     <div class="message" ng-class="messageType" ng-show="message">
