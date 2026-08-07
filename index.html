@@ -682,7 +682,7 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()">
+      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="players.length < 2">
         Iniciar Partida
       </button>
     </div>
@@ -728,6 +728,10 @@
           <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(card.suit) }}</div>
           <div class="bottom-right">{{ card.value }}</div>
         </div>
+      </div>
+
+      <div class="waiting-turn" ng-if="roomStatus === 'PLAYING' && !isMyTurn">
+        Aguarde sua vez. Outro jogador estÃ¡ escolhendo a carta.
       </div>
 
       <!-- Fase de Apostas -->

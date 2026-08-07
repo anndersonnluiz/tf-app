@@ -112,9 +112,16 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.startGame = function() {
-    if ($scope.currentRoomCode) {
-      socket.emit('start_game', { roomCode: $scope.currentRoomCode });
+    if (!$scope.currentRoomCode) {
+      return;
     }
+
+    if (!$scope.players || $scope.players.length < 2) {
+      showMessage('A partida precisa de pelo menos 2 jogadores para iniciar.', 'error');
+      return;
+    }
+
+    socket.emit('start_game', { roomCode: $scope.currentRoomCode });
   };
 
   $scope.incrementBet = function() {
