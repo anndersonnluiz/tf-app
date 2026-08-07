@@ -12,13 +12,15 @@
   <script>
     document.write('<script src="' + window.TF_API_URL.replace(/\/$/, '') + '/socket.io/socket.io.js"><' + '/script>');
   </script>
-
   <style>
     :root {
       --bg-color: #1a1a1a;
       --panel-bg: #262626;
+      --surface-bg: #1e1e1e;
+      --surface-strong: #121212;
       --text-main: #f0f0f0;
       --text-muted: #a0a0a0;
+      --primary-color: #4facfe;
       --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
       --primary-hover: linear-gradient(135deg, #1af0fc 0%, #68b8ff 100%);
       --secondary-bg: #333333;
@@ -29,6 +31,7 @@
       --success-text: #4facfe;
       --error-bg: rgba(255, 79, 79, 0.1);
       --error-text: #ff4f4f;
+      --warning-text: #f59e0b;
     }
 
     * {
@@ -57,11 +60,11 @@
 
     .lobby-container {
       background-color: var(--panel-bg);
-      padding: 50px 40px;
+      padding: 42px 36px;
       border-radius: 16px;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
       width: 100%;
-      max-width: 440px;
+      max-width: 720px;
       text-align: center;
       animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       margin: 24px 0;
@@ -80,22 +83,8 @@
       display: block;
     }
 
-    @media (max-height: 820px) {
-      .logo {
-        margin-bottom: 18px;
-      }
-
-      .logo img {
-        width: min(100%, 180px);
-      }
-
-      .lobby-container {
-        padding: 32px 28px;
-      }
-    }
-
     .input-group {
-      margin-bottom: 25px;
+      margin-bottom: 24px;
       text-align: left;
     }
 
@@ -109,12 +98,13 @@
       letter-spacing: 0.5px;
     }
 
-    .input-group input {
+    .input-group input,
+    .room-actions input {
       width: 100%;
       padding: 14px 16px;
       border: 1px solid var(--border-color);
       border-radius: 10px;
-      background-color: #121212;
+      background-color: var(--surface-strong);
       color: var(--text-main);
       font-size: 1rem;
       outline: none;
@@ -122,8 +112,9 @@
       font-family: 'Inter', sans-serif;
     }
 
-    .input-group input:focus {
-      border-color: #4facfe;
+    .input-group input:focus,
+    .room-actions input:focus {
+      border-color: var(--primary-color);
       box-shadow: 0 0 0 4px var(--focus-ring);
     }
 
@@ -152,13 +143,18 @@
       transform: scale(0.97);
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .btn-primary {
       background: var(--primary-gradient);
       color: #000;
       box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
     }
 
-    .btn-primary:hover {
+    .btn-primary:hover:not(:disabled) {
       background: var(--primary-hover);
       box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
       transform: translateY(-1px);
@@ -170,7 +166,7 @@
       border: 1px solid var(--border-color);
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:hover:not(:disabled) {
       background-color: var(--secondary-hover);
       border-color: #555;
     }
@@ -182,153 +178,13 @@
       align-items: stretch;
     }
 
-    .room-actions input {
-      flex: 1;
-      padding: 14px 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      background-color: #121212;
-      color: var(--text-main);
-      font-size: 1rem;
-      outline: none;
-      text-transform: uppercase;
-      font-family: 'Inter', sans-serif;
-      transition: all 0.2s;
-    }
-
-    .room-actions input:focus {
-      border-color: #4facfe;
-      box-shadow: 0 0 0 4px var(--focus-ring);
-    }
-
     .room-actions .btn {
       flex: 0 0 auto;
       padding: 0 25px;
     }
 
-    .game-over-view {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .game-over-trophy {
-      font-size: 4rem;
-      margin-bottom: 20px;
-    }
-
-    .game-over-title {
-      color: #F59E0B;
-      font-size: 2rem;
-      margin-bottom: 10px;
-      text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
-    }
-
-    .game-over-text {
-      color: var(--text-main);
-      font-size: 1.3rem;
-      margin-bottom: 30px;
-      line-height: 1.35;
-      word-break: break-word;
-    }
-
-    .game-over-winner {
-      color: #00f2fe;
-    }
-
-    .game-over-button {
-      width: 100%;
-      max-width: 320px;
-      margin: 0 auto;
-      padding: 15px 40px;
-      font-size: 1rem;
-      justify-content: center;
-    }
-
-    @media (max-width: 520px) {
-      body {
-        padding: 12px;
-      }
-
-      .lobby-container {
-        max-width: none;
-        margin: 8px 0;
-        padding: 28px 20px;
-        border-radius: 14px;
-      }
-
-      .logo {
-        margin-bottom: 20px;
-      }
-
-      .logo img {
-        width: min(100%, 170px);
-      }
-
-      .actions {
-        gap: 12px;
-      }
-
-      .btn {
-        width: 100%;
-        padding: 14px 16px;
-      }
-
-      .room-actions {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .room-actions .btn {
-        width: 100%;
-        padding: 14px 16px;
-      }
-
-      .room-code-display {
-        font-size: 2rem;
-        letter-spacing: 3px;
-        padding: 12px;
-      }
-
-      .betting-area {
-        padding: 20px 16px;
-      }
-
-      .stepper {
-        gap: 18px;
-      }
-
-      .stepper-value {
-        font-size: 2.4rem;
-        min-width: 48px;
-      }
-
-      .btn-stepper {
-        width: 44px;
-        height: 44px;
-      }
-
-      .game-over-view {
-        padding: 24px 8px 8px;
-      }
-
-      .game-over-trophy {
-        font-size: 3.2rem;
-        margin-bottom: 16px;
-      }
-
-      .game-over-title {
-        font-size: 2.2rem;
-        line-height: 1.1;
-      }
-
-      .game-over-text {
-        font-size: 1.1rem;
-        margin-bottom: 22px;
-      }
-    }
-
     .message {
-      margin-top: 25px;
+      margin-top: 24px;
       padding: 16px;
       border-radius: 10px;
       font-weight: 500;
@@ -351,40 +207,27 @@
       color: var(--error-text);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
-      display: none !important;
-    }
-
-    .room-header, .table-header {
-      margin-bottom: 30px;
+    .room-header,
+    .table-header {
+      margin-bottom: 28px;
     }
 
     .room-code-display {
       font-size: 2.5rem;
       font-weight: 700;
-      color: #4facfe;
+      color: var(--primary-color);
       letter-spacing: 5px;
       margin: 15px 0;
       padding: 15px;
-      background: #121212;
+      background: var(--surface-strong);
       border-radius: 10px;
-      border: 1px dashed #4facfe;
+      border: 1px dashed var(--primary-color);
     }
 
     .players-list {
       text-align: left;
-      margin-bottom: 30px;
-      background: #1e1e1e;
+      margin-bottom: 28px;
+      background: var(--surface-bg);
       border-radius: 10px;
       padding: 15px;
       border: 1px solid var(--border-color);
@@ -425,6 +268,104 @@
       margin-right: 12px;
     }
 
+    .status-board {
+      margin: 26px 0 24px;
+      text-align: left;
+    }
+
+    .status-board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .status-board-header h3 {
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+
+    .status-board-header span {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .status-board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .status-card {
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.18);
+      border-radius: 14px;
+      padding: 14px;
+      min-height: 132px;
+    }
+
+    .status-card.is-turn {
+      border-color: rgba(0, 242, 254, 0.7);
+      box-shadow: 0 0 0 1px rgba(0, 242, 254, 0.4), 0 0 20px rgba(0, 242, 254, 0.08);
+    }
+
+    .status-card.is-eliminated {
+      opacity: 0.55;
+    }
+
+    .status-card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .status-card-name {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-main);
+      word-break: break-word;
+    }
+
+    .status-card-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #00131a;
+      background: #00f2fe;
+      border-radius: 999px;
+      padding: 5px 8px;
+      white-space: nowrap;
+    }
+
+    .status-card-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .status-card-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-card-label {
+      color: var(--text-muted);
+    }
+
+    .status-card-value {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .status-card-waiting {
+      color: var(--warning-text);
+      font-weight: 600;
+    }
+
     .playing-card {
       background: #fcfaf5;
       border-radius: 8px;
@@ -434,11 +375,11 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-weight: bold;
+      font-weight: 700;
       font-size: 1.2rem;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
       position: relative;
-      border: 1px solid rgba(0,0,0,0.1);
+      border: 1px solid rgba(0, 0, 0, 0.1);
       font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     }
 
@@ -456,7 +397,7 @@
 
     .playing-card:not(.disabled-card):hover {
       transform: translateY(-10px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
     }
 
     .glow-winner {
@@ -482,7 +423,7 @@
     }
 
     .trump-area {
-      margin-bottom: 30px;
+      margin-bottom: 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -496,6 +437,32 @@
       letter-spacing: 1px;
     }
 
+    .table-area {
+      margin: 30px 0;
+    }
+
+    .table-area-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    .table-area-head h3 {
+      color: var(--text-main);
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .table-surface {
+      min-height: 125px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px dashed #555;
+    }
+
     .hand-area {
       display: flex;
       justify-content: center;
@@ -504,12 +471,17 @@
       flex-wrap: wrap;
     }
 
-    .betting-area {
-      background: #1e1e1e;
-      padding: 30px;
-      border-radius: 12px;
+    .betting-area,
+    .waiting-turn,
+    .round-results-panel {
+      background: var(--surface-bg);
       border: 1px solid var(--border-color);
-      margin-top: 30px;
+      border-radius: 12px;
+    }
+
+    .betting-area {
+      padding: 28px 24px;
+      margin-top: 28px;
     }
 
     .stepper {
@@ -520,14 +492,14 @@
     }
 
     .btn-stepper {
-      background: #121212;
+      background: var(--surface-strong);
       color: #00f2fe;
       border: 2px solid #00f2fe;
       border-radius: 50%;
       width: 50px;
       height: 50px;
       font-size: 1.5rem;
-      font-weight: bold;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       justify-content: center;
@@ -540,37 +512,32 @@
       box-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
     }
 
-    .btn-stepper:active {
-      transform: scale(0.9);
-    }
-
     .stepper-value {
       font-size: 3rem;
       font-weight: 700;
       color: #fff;
-      text-shadow: 0 0 15px rgba(255,255,255,0.3);
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
       min-width: 60px;
       text-align: center;
     }
 
     .bet-error {
-      color: #ff4f4f;
+      color: var(--error-text);
       background: rgba(255, 79, 79, 0.1);
       padding: 10px;
       border-radius: 8px;
       margin-top: 15px;
       font-size: 0.9rem;
       font-weight: 500;
-      border: 1px solid rgba(255,79,79,0.3);
+      border: 1px solid rgba(255, 79, 79, 0.3);
     }
 
     .waiting-turn {
       color: var(--text-muted);
-      margin-top: 30px;
+      margin-top: 26px;
       font-style: italic;
-      padding: 20px;
-      background: #1e1e1e;
-      border-radius: 10px;
+      padding: 18px 20px;
+      line-height: 1.45;
     }
 
     .toast-overlay {
@@ -581,17 +548,12 @@
       padding: 15px 30px;
       border-radius: 12px;
       font-size: 1.5rem;
-      font-weight: bold;
+      font-weight: 700;
       z-index: 1000;
       color: white;
       text-align: center;
       pointer-events: none;
       animation: popIn 0.3s ease-out;
-    }
-
-    @keyframes popIn {
-      0% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
-      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     }
 
     .neon-red {
@@ -612,32 +574,219 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       z-index: 900;
       display: flex;
       justify-content: center;
       align-items: center;
+      padding: 20px;
     }
 
     .history-modal {
-      background: #1e1e1e;
+      background: var(--surface-bg);
       padding: 25px;
       border-radius: 12px;
       min-width: 300px;
-      max-width: 90%;
+      max-width: 640px;
+      width: 100%;
       max-height: 80vh;
       overflow-y: auto;
       border: 1px solid var(--border-color);
     }
 
     .history-item {
-      padding: 10px;
+      padding: 10px 0;
       border-bottom: 1px solid #333;
       color: white;
+      text-align: left;
     }
 
     .history-item:last-child {
       border-bottom: none;
+    }
+
+    .round-results-view {
+      text-align: center;
+      padding: 12px 0 6px;
+    }
+
+    .round-results-view h2 {
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+
+    .round-results-panel {
+      overflow: hidden;
+    }
+
+    .round-results-head,
+    .round-results-row {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 14px 18px;
+      text-align: left;
+    }
+
+    .round-results-head {
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .round-results-row {
+      border-top: 1px solid #333;
+      align-items: center;
+    }
+
+    .game-over-view {
+      text-align: center;
+      padding: 34px 8px 8px;
+    }
+
+    .game-over-trophy {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .game-over-title {
+      color: var(--warning-text);
+      font-size: 2.2rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+    }
+
+    .game-over-text {
+      color: var(--text-main);
+      font-size: 1.3rem;
+      margin-bottom: 30px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .game-over-winner {
+      color: #00f2fe;
+    }
+
+    .game-over-button {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      padding: 15px 40px;
+      font-size: 1rem;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: translate(-50%, -80%) scale(0.8); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+      display: none !important;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 12px;
+      }
+
+      .lobby-container {
+        max-width: none;
+        margin: 8px 0;
+        padding: 28px 20px;
+        border-radius: 14px;
+      }
+
+      .logo {
+        margin-bottom: 20px;
+      }
+
+      .logo img {
+        width: min(100%, 170px);
+      }
+
+      .btn {
+        width: 100%;
+        padding: 14px 16px;
+      }
+
+      .room-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .room-actions .btn {
+        width: 100%;
+        padding: 14px 16px;
+      }
+
+      .room-code-display {
+        font-size: 2rem;
+        letter-spacing: 3px;
+      }
+
+      .status-board-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .table-area-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .round-results-head,
+      .round-results-row {
+        grid-template-columns: 1.3fr 0.9fr 0.9fr 0.9fr;
+        padding: 12px;
+        font-size: 0.84rem;
+      }
+
+      .stepper {
+        gap: 18px;
+      }
+
+      .stepper-value {
+        font-size: 2.4rem;
+        min-width: 48px;
+      }
+
+      .btn-stepper {
+        width: 44px;
+        height: 44px;
+      }
+
+      .game-over-view {
+        padding: 24px 8px 8px;
+      }
+
+      .game-over-trophy {
+        font-size: 3.2rem;
+        margin-bottom: 16px;
+      }
+
+      .game-over-title {
+        font-size: 2rem;
+        line-height: 1.1;
+      }
+
+      .game-over-text {
+        font-size: 1.1rem;
+        margin-bottom: 22px;
+      }
     }
   </style>
 </head>
@@ -648,8 +797,10 @@
 
   <div class="modal-backdrop" ng-if="showHistoryModal" ng-click="showHistoryModal = false">
     <div class="history-modal" ng-click="$event.stopPropagation()">
-      <h3 style="margin-bottom: 15px; color: var(--text-main);">Histórico da Rodada</h3>
-      <div ng-if="roundHistory.length === 0" style="color: var(--text-muted); font-style: italic;">Nenhuma vaza jogada ainda.</div>
+      <h3 style="margin-bottom: 15px; color: var(--text-main);">Histórico da rodada</h3>
+      <div ng-if="roundHistory.length === 0" style="color: var(--text-muted); font-style: italic;">
+        Nenhuma vaza jogada ainda.
+      </div>
       <div class="history-item" ng-repeat="log in roundHistory track by $index">
         <strong>Vaza {{ $index + 1 }}:</strong>
         <span ng-if="log.isTie" style="color: #ef4444;">Bucha!</span>
@@ -666,17 +817,17 @@
 
     <div ng-if="currentView === 'login'">
       <div class="input-group">
-        <label for="nickname">Seu Apelido</label>
+        <label for="nickname">Seu apelido</label>
         <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
       </div>
 
       <div class="actions">
         <button class="btn btn-primary" ng-click="quickMatch()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Jogar Agora
+          Jogar agora
         </button>
 
-        <button class="btn btn-secondary" ng-click="createRoom()">Criar Sala Privada</button>
+        <button class="btn btn-secondary" ng-click="createRoom()">Criar sala privada</button>
 
         <div class="room-actions">
           <input type="text" ng-model="data.roomCodeInput" placeholder="CÓDIGO" maxlength="4">
@@ -687,7 +838,7 @@
 
     <div ng-if="currentView === 'room'">
       <div class="room-header">
-        <h2 style="font-size: 1.1rem; color: var(--text-muted); font-weight: 400;">Código da Sala</h2>
+        <h2 style="font-size: 1.1rem; color: var(--text-muted); font-weight: 400;">Código da sala</h2>
         <div class="room-code-display">{{ currentRoomCode }}</div>
       </div>
 
@@ -700,18 +851,23 @@
       </div>
 
       <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="players.length < 2">
-        Iniciar Partida
+        Iniciar partida
       </button>
+      <p ng-if="players.length < 2" style="color: var(--text-muted); margin-top: 12px;">
+        A partida começa com pelo menos 2 jogadores.
+      </p>
     </div>
 
     <div ng-if="currentView === 'table'">
       <div class="table-header">
         <h2 style="color: var(--text-main); font-size: 1.5rem;">Rodada {{ currentRound }}</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Fase de Apostas (Canto)</p>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 5px;">
+          {{ roomStatus === 'BETTING' ? 'Fase de apostas' : 'Partida em andamento' }}
+        </p>
       </div>
 
       <div class="trump-area" ng-if="currentTrump">
-        <span>Trunfo da Rodada</span>
+        <span>Trunfo da rodada</span>
         <div class="playing-card disabled-card" ng-style="{'color': getCardColor(currentTrump.suit)}">
           <div class="top-left">{{ currentTrump.value }}</div>
           <div style="font-size: 3rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(currentTrump.suit) }}</div>
@@ -719,22 +875,67 @@
         </div>
       </div>
 
-      <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0" style="margin: 30px 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="color: var(--text-main); font-size: 1.1rem; margin: 0;">Mesa</h3>
-          <button class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 15px; font-size: 0.8rem; border-radius: 20px;" ng-click="showHistoryModal = true">Histórico</button>
+      <div class="status-board" ng-if="playerStates.length > 0">
+        <div class="status-board-header">
+          <h3>Acompanhe a rodada</h3>
+          <span>Veja quem apostou, quantas cartas restam e quem está na vez.</span>
         </div>
-        <div class="hand-area" style="min-height: 125px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px dashed #555;">
-          <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
-            <div class="top-left">{{ tc.card.value }}</div>
-            <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
-            <div class="bottom-right">{{ tc.card.value }}</div>
-            <div style="position: absolute; bottom: -28px; font-size: 0.8rem; color: #fff; background: var(--secondary-hover); padding: 3px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">{{ tc.playerName }}</div>
+
+        <div class="status-board-grid">
+          <div
+            class="status-card"
+            ng-class="{'is-turn': player.isCurrentTurn, 'is-eliminated': player.eliminated}"
+            ng-repeat="player in playerStates track by $index">
+            <div class="status-card-top">
+              <div class="status-card-name">{{ player.name }}</div>
+              <div class="status-card-badge" ng-if="player.isCurrentTurn">Na vez</div>
+            </div>
+
+            <div class="status-card-row">
+              <span class="status-card-label">Vidas</span>
+              <span class="status-card-value">{{ player.lives }}</span>
+            </div>
+
+            <div class="status-card-row">
+              <span class="status-card-label">Cartas na mão</span>
+              <span class="status-card-value">{{ player.cardsInHand }}</span>
+            </div>
+
+            <div class="status-card-row">
+              <span class="status-card-label">Aposta</span>
+              <span class="status-card-value" ng-if="player.hasBet">{{ player.bet }}</span>
+              <span class="status-card-waiting" ng-if="!player.hasBet">Aguardando</span>
+            </div>
+
+            <div class="status-card-row">
+              <span class="status-card-label">Fez</span>
+              <span class="status-card-value">{{ player.tricksWon }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <h3 style="font-size: 1rem; color: var(--text-muted); text-align: left; margin-top: 30px;">Sua Mão</h3>
+      <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0">
+        <div class="table-area-head">
+          <h3>Mesa</h3>
+          <button class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 8px 15px; font-size: 0.85rem; border-radius: 20px;" ng-click="showHistoryModal = true">
+            Histórico
+          </button>
+        </div>
+
+        <div class="table-surface">
+          <div class="hand-area" style="margin-top: 0;">
+            <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
+              <div class="top-left">{{ tc.card.value }}</div>
+              <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
+              <div class="bottom-right">{{ tc.card.value }}</div>
+              <div style="position: absolute; bottom: -28px; font-size: 0.8rem; color: #fff; background: var(--secondary-hover); padding: 3px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">{{ tc.playerName }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="font-size: 1rem; color: var(--text-muted); text-align: left; margin-top: 30px;">Sua mão</h3>
       <div class="hand-area">
         <div class="playing-card" ng-class="{'disabled-card': !isMyTurn || roomStatus !== 'PLAYING'}" ng-style="{'color': getCardColor(card.suit)}" ng-repeat="card in myHand track by $index" ng-click="playCard(card)">
           <div class="top-left">{{ card.value }}</div>
@@ -744,18 +945,18 @@
       </div>
 
       <div class="waiting-turn" ng-if="roomStatus === 'PLAYING' && !isMyTurn">
-        Aguarde sua vez. Outro jogador está escolhendo a carta.
+        Aguarde sua vez. O outro jogador está escolhendo a carta.
       </div>
 
       <div class="betting-area" ng-if="roomStatus === 'BETTING' && isMyTurn">
-        <h3 style="color: var(--text-main); margin-bottom: 20px;">Sua vez de apostar!</h3>
+        <h3 style="color: var(--text-main); margin-bottom: 20px;">Sua vez de apostar</h3>
         <div class="stepper">
           <button class="btn-stepper" ng-click="decrementBet()">-</button>
           <div class="stepper-value">{{ betValue }}</div>
           <button class="btn-stepper" ng-click="incrementBet()">+</button>
         </div>
 
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.2rem; padding: 15px;" ng-click="makeBet()">Confirmar Aposta</button>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.1rem; padding: 15px;" ng-click="makeBet()">Confirmar aposta</button>
 
         <div class="bet-error" ng-show="betError">
           {{ betError }}
@@ -763,18 +964,24 @@
       </div>
 
       <div class="waiting-turn" ng-if="roomStatus === 'BETTING' && !isMyTurn">
-        Aguardando outros jogadores apostarem...
+        Aguarde. Os outros jogadores ainda estão fazendo as apostas.
       </div>
     </div>
 
-    <div ng-if="currentView === 'round_results'" style="text-align: center; padding: 20px;">
-      <h2 style="color: var(--text-main); margin-bottom: 25px;">📊 Resultado da Rodada</h2>
-      <div style="background: #1e1e1e; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 12px 20px; background: rgba(0,0,0,0.4); color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
-          <span>Jogador</span><span>Apostou</span><span>Fez</span><span>Vidas</span>
+    <div ng-if="currentView === 'round_results'" class="round-results-view">
+      <h2>Resultado da rodada</h2>
+      <div class="round-results-panel">
+        <div class="round-results-head">
+          <span>Jogador</span>
+          <span>Apostou</span>
+          <span>Fez</span>
+          <span>Vidas</span>
         </div>
-        <div ng-repeat="r in roundResults" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 15px 20px; border-top: 1px solid #333;" ng-style="{'opacity': r.eliminated ? 0.5 : 1}">
-          <span style="color: white; font-weight: 500;">{{ r.name }} <span ng-if="r.eliminated" style="color: #ef4444; font-size: 0.75rem;">(eliminado)</span></span>
+        <div class="round-results-row" ng-repeat="r in roundResults" ng-style="{'opacity': r.eliminated ? 0.5 : 1}">
+          <span style="color: white; font-weight: 500;">
+            {{ r.name }}
+            <span ng-if="r.eliminated" style="color: #ef4444; font-size: 0.75rem;">(eliminado)</span>
+          </span>
           <span style="color: #94a3b8;">{{ r.bet }}</span>
           <span style="color: #94a3b8;">{{ r.tricksWon }}</span>
           <span ng-style="{'color': r.penalty > 0 ? '#ef4444' : '#10b981'}">
@@ -782,16 +989,18 @@
           </span>
         </div>
       </div>
-      <p style="color: var(--text-muted); margin-top: 20px; font-style: italic;">Nova rodada começando em instantes...</p>
+      <p style="color: var(--text-muted); margin-top: 20px; font-style: italic;">
+        Nova rodada começando em instantes...
+      </p>
     </div>
 
     <div ng-if="currentView === 'game_over'" class="game-over-view">
       <div class="game-over-trophy">🏆</div>
-      <h2 class="game-over-title">Fim de Jogo!</h2>
+      <h2 class="game-over-title">Fim de jogo!</h2>
       <p class="game-over-text">
         <strong class="game-over-winner">{{ gameOver.winner }}</strong> é o grande vencedor!
       </p>
-      <button class="btn btn-primary game-over-button" ng-click="currentView = 'login'">Jogar Novamente</button>
+      <button class="btn btn-primary game-over-button" ng-click="currentView = 'login'">Jogar novamente</button>
     </div>
 
     <div class="message" ng-class="messageType" ng-show="message">
