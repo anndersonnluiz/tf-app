@@ -236,7 +236,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.myHand = [];
     $scope.isMyTurn = false;
-    showMessage('Rodada finalizada! Nova rodada em 5 segundos...', 'success');
+    showMessage('Rodada finalizada! Nova rodada em 7 segundos...', 'success');
   });
 
   socket.on('new_round_started', function(data) {
