@@ -69,6 +69,16 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
   }
 
+  function getMyPlayerState() {
+    return ($scope.playerStates || []).find(function(player) {
+      return player.name === $scope.data.playerName.trim();
+    });
+  }
+
+  function getMaxBetValue() {
+    return ($scope.myHand && $scope.myHand.length) ? $scope.myHand.length : $scope.cardsPerPlayer;
+  }
+
   function showMessage(message, type) {
     $scope.message = message;
     $scope.messageType = type || 'success';
@@ -134,7 +144,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.incrementBet = function() {
-    if ($scope.betValue < $scope.cardsPerPlayer) {
+    if ($scope.betValue < getMaxBetValue()) {
       $scope.betValue += 1;
       $scope.betError = '';
     }
@@ -148,6 +158,18 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.makeBet = function() {
+    var myPlayerState = getMyPlayerState();
+    var guaranteedTricks = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
+
+    if ($scope.betValue > getMaxBetValue()) {
+      $scope.betValue = getMaxBetValue();
+    }
+
+    if ($scope.betValue < guaranteedTricks) {
+      $scope.betError = 'Você precisa apostar pelo menos ' + guaranteedTricks + '.';
+      return;
+    }
+
     socket.emit('make_bet', {
       roomCode: $scope.currentRoomCode,
       bet: $scope.betValue
@@ -198,6 +220,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundHistory = [];
     $scope.tableCards = [];
     updatePlayerStates(data.playerStates);
+    var myPlayerState = getMyPlayerState();
+    $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
     showMessage('Fase de apostas iniciada!', 'success');
   });
 
@@ -207,6 +231,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
     if ($scope.isMyTurn) {
       $scope.betError = '';
+      var myPlayerState = getMyPlayerState();
+      var minimumBet = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
+      if ($scope.betValue < minimumBet) {
+        $scope.betValue = minimumBet;
+      }
     }
   });
 
@@ -291,6 +320,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.roundResults = [];
     updatePlayerStates(data.playerStates);
+    var myPlayerState = getMyPlayerState();
+    $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
     showMessage('Nova rodada começou!', 'success');
   });
 
