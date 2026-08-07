@@ -7,7 +7,6 @@ function getApiBaseUrl() {
 
 // Factory para gerenciar a conexão Socket.io de forma integrada ao ciclo de digestão do Angular
 app.factory('socket', function($rootScope) {
-  // Conecta ao servidor backend
   var socket = io.connect(getApiBaseUrl());
 
   return {
@@ -33,7 +32,6 @@ app.factory('socket', function($rootScope) {
   };
 });
 
-// Controller Principal do Lobby
 app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.currentView = 'login';
 
