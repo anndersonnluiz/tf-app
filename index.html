@@ -9,8 +9,17 @@
   
   <!-- AngularJS -->
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script>
+    window.TF_API_URL = window.TF_API_URL || new URLSearchParams(window.location.search).get('apiUrl') || 'http://localhost:3000';
+  </script>
   <!-- Socket.io -->
-  <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+  <script src="" data-socket-script></script>
+  <script>
+    (function() {
+      var socketScript = document.querySelector('[data-socket-script]');
+      socketScript.src = window.TF_API_URL.replace(/\/$/, '') + '/socket.io/socket.io.js';
+    })();
+  </script>
   
   <style>
     /* Design System e Dark Mode */

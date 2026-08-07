@@ -1,14 +1,19 @@
 var app = angular.module('tfApp', []);
 
+function getApiBaseUrl() {
+  var configuredUrl = window.TF_API_URL || 'http://localhost:3000';
+  return configuredUrl.replace(/\/$/, '');
+}
+
 // Factory para gerenciar a conexão Socket.io de forma integrada ao ciclo de digestão do Angular
 app.factory('socket', function($rootScope) {
   // Conecta ao servidor backend
-  var socket = io.connect('http://localhost:3000');
-  
+  var socket = io.connect(getApiBaseUrl());
+
   return {
     id: function() { return socket.id; },
     on: function(eventName, callback) {
-      socket.on(eventName, function() {  
+      socket.on(eventName, function() {
         var args = arguments;
         $rootScope.$apply(function() {
           callback.apply(socket, args);
@@ -23,29 +28,26 @@ app.factory('socket', function($rootScope) {
             callback.apply(socket, args);
           }
         });
-      })
+      });
     }
   };
 });
 
 // Controller Principal do Lobby
 app.controller('LobbyController', function($scope, $timeout, socket) {
-  // Controle de estado da UI
   $scope.currentView = 'login';
-  
+
   $scope.data = {
     playerName: '',
     roomCodeInput: ''
   };
-  
-  // Estado da Sala
+
   $scope.currentRoomCode = '';
   $scope.players = [];
 
-  // Estado do Jogo
   $scope.currentRound = 0;
   $scope.currentTrump = null;
-  $scope.cardsPerPlayer = 5; // Limite do stepper (= vidas atuais do jogador)
+  $scope.cardsPerPlayer = 5;
   $scope.myHand = [];
   $scope.tableCards = [];
   $scope.roomStatus = '';
@@ -53,37 +55,32 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.betValue = 0;
   $scope.betError = '';
 
-  // Histórico e Notificações
   $scope.roundHistory = [];
   $scope.showHistoryModal = false;
   $scope.toastMessage = null;
   $scope.toastClass = '';
 
-  // Fim de rodada / Jogo
   $scope.roundResults = [];
   $scope.gameOver = null;
 
   $scope.message = '';
   $scope.messageType = 'success';
-  
+
   var messageTimeout;
-  
-  // Exibe mensagens de feedback na interface
-  function showMessage(msg, type = 'success') {
+
+  function showMessage(msg, type) {
     $scope.message = msg;
-    $scope.messageType = type;
-    
+    $scope.messageType = type || 'success';
+
     if (messageTimeout) {
       $timeout.cancel(messageTimeout);
     }
-    
-    // Oculta a mensagem após 4 segundos
+
     messageTimeout = $timeout(function() {
       $scope.message = '';
     }, 4000);
   }
 
-  // Ação: Partida Rápida
   $scope.quickMatch = function() {
     if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
       showMessage('Por favor, digite seu apelido antes de jogar.', 'error');
@@ -92,7 +89,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     socket.emit('quick_match', { playerName: $scope.data.playerName });
   };
 
-  // Ação: Criar Sala Privada
   $scope.createRoom = function() {
     if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
       showMessage('Por favor, digite seu apelido antes de criar uma sala.', 'error');
@@ -101,7 +97,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     socket.emit('create_room', { playerName: $scope.data.playerName, isPrivate: true });
   };
 
-  // Ação: Entrar em Sala por Código
   $scope.joinRoom = function() {
     if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
       showMessage('Por favor, digite seu apelido antes de entrar.', 'error');
@@ -111,19 +106,17 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       showMessage('O código da sala deve ter exatos 4 caracteres.', 'error');
       return;
     }
-    
+
     var code = $scope.data.roomCodeInput.trim().toUpperCase();
     socket.emit('join_room', { playerName: $scope.data.playerName, roomCode: code });
   };
 
-  // Ação: Iniciar Partida
   $scope.startGame = function() {
     if ($scope.currentRoomCode) {
       socket.emit('start_game', { roomCode: $scope.currentRoomCode });
     }
   };
 
-  // Stepper de Apostas
   $scope.incrementBet = function() {
     if ($scope.betValue < $scope.cardsPerPlayer) {
       $scope.betValue++;
@@ -142,21 +135,19 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     socket.emit('make_bet', { roomCode: $scope.currentRoomCode, bet: $scope.betValue });
   };
 
-  // Jogar Carta
   $scope.playCard = function(card) {
-    if (!$scope.isMyTurn || $scope.roomStatus !== 'PLAYING') return;
-    
-    // Removemos da UI temporariamente para fluidez, o server confirmará
+    if (!$scope.isMyTurn || $scope.roomStatus !== 'PLAYING') {
+      return;
+    }
+
     var idx = $scope.myHand.indexOf(card);
     if (idx > -1) {
       $scope.myHand.splice(idx, 1);
     }
-    
+
     socket.emit('play_card', { roomCode: $scope.currentRoomCode, card: card });
   };
 
-  // --------- Listeners de Eventos do Socket ---------
-  
   socket.on('room_created', function(data) {
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
@@ -168,12 +159,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentRoomCode = data.roomCode;
     showMessage('Conectado à sala com sucesso!', 'success');
   });
-  
+
   socket.on('room_updated', function(data) {
-    // Atualiza a lista de jogadores em tempo real
     $scope.players = data.players;
   });
-  
+
   socket.on('round_started', function(data) {
     $scope.currentView = 'table';
     $scope.roomStatus = 'BETTING';
@@ -222,22 +212,22 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     } else {
       $scope.toastMessage = data.winnerName + ' levou a mão com ' + data.winningCard.value + ' ' + $scope.getSuitSymbol(data.winningCard.suit) + '!';
       $scope.toastClass = 'neon-blue';
-      
-      // Destaca a carta ganhadora na mesa
+
       if ($scope.tableCards) {
         var winnerTc = $scope.tableCards.find(function(tc) { return tc.playerName === data.winnerName; });
-        if (winnerTc) winnerTc.isWinner = true;
+        if (winnerTc) {
+          winnerTc.isWinner = true;
+        }
       }
     }
 
-    // Esconde o toast após 2.5s (um pouco mais que o delay do servidor pra cruzar com a limpeza da mesa)
     $timeout(function() {
       $scope.toastMessage = null;
     }, 2500);
   });
 
   socket.on('player_eliminated', function(data) {
-    showMessage('🚭 ' + data.name + ' foi eliminado!', 'error');
+    showMessage('Jogador eliminado: ' + data.name, 'error');
   });
 
   socket.on('round_results', function(data) {
@@ -266,16 +256,15 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   socket.on('game_over', function(data) {
     $scope.currentView = 'game_over';
     $scope.gameOver = data;
-    showMessage('🏆 Fim de jogo! Vencedor: ' + data.winner, 'success');
+    showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
 
   socket.on('error', function(data) {
     showMessage(data.message, 'error');
   });
 
-  // Funções Auxiliares Visuais para o Baralho Espanhol
   $scope.getSuitSymbol = function(suit) {
-    switch(suit) {
+    switch (suit) {
       case 'ouros': return '🟡';
       case 'copas': return '🍷';
       case 'espadas': return '⚔️';
@@ -285,11 +274,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.getCardColor = function(suit) {
-    switch(suit) {
-      case 'ouros': return '#F59E0B'; // Dourado
-      case 'copas': return '#EF4444'; // Vermelho Vivo
-      case 'espadas': return '#3B82F6'; // Azul Claro/Prata
-      case 'paus': return '#10B981'; // Verde Neon
+    switch (suit) {
+      case 'ouros': return '#F59E0B';
+      case 'copas': return '#EF4444';
+      case 'espadas': return '#3B82F6';
+      case 'paus': return '#10B981';
       default: return '#333';
     }
   };
