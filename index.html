@@ -13,12 +13,8 @@
     window.TF_API_URL = window.TF_API_URL || new URLSearchParams(window.location.search).get('apiUrl') || 'http://localhost:3000';
   </script>
   <!-- Socket.io -->
-  <script src="" data-socket-script></script>
   <script>
-    (function() {
-      var socketScript = document.querySelector('[data-socket-script]');
-      socketScript.src = window.TF_API_URL.replace(/\/$/, '') + '/socket.io/socket.io.js';
-    })();
+    document.write('<script src="' + window.TF_API_URL.replace(/\/$/, '') + '/socket.io/socket.io.js"><' + '/script>');
   </script>
   
   <style>
