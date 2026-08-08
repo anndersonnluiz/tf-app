@@ -848,7 +848,7 @@
     {{ toastMessage }}
   </div>
 
-  <div class="modal-backdrop" ng-if="showHistoryModal" ng-click="closeHistory()">
+  <div class="modal-backdrop" ng-if="showHistoryModal" ng-click="closeHistory()" onclick="window.__tfCloseHistory && window.__tfCloseHistory()">
     <div class="history-modal" ng-click="$event.stopPropagation()">
       <h3 style="margin-bottom: 15px; color: var(--text-main);">Histórico da rodada</h3>
       <div ng-if="roundHistory.length === 0" style="color: var(--text-muted); font-style: italic;">
@@ -859,7 +859,7 @@
         <span ng-if="log.isTie" style="color: #ef4444;">Bucha!</span>
         <span ng-if="!log.isTie">{{ log.winnerName }} venceu com {{ log.winningCard.value }} {{ getSuitSymbol(log.winningCard.suit) }}</span>
       </div>
-      <button class="btn btn-primary" style="margin-top: 20px; width: 100%; padding: 10px;" ng-click="closeHistory()">Fechar</button>
+      <button type="button" class="btn btn-primary" style="margin-top: 20px; width: 100%; padding: 10px;" ng-click="closeHistory()" onclick="window.__tfCloseHistory && window.__tfCloseHistory()">Fechar</button>
     </div>
   </div>
 
