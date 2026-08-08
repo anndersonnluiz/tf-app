@@ -70,6 +70,24 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
   }
 
+  function syncTurnState(data) {
+    updatePlayerStates(data && data.playerStates);
+
+    var myPlayerState = getMyPlayerState();
+    var isMyTurnBySocket = !!(data && data.currentPlayerId) && socket.id() === data.currentPlayerId;
+    var isMyTurnByState = !!(myPlayerState && myPlayerState.isCurrentTurn);
+
+    $scope.isMyTurn = isMyTurnBySocket || isMyTurnByState;
+
+    if ($scope.isMyTurn) {
+      $scope.betError = '';
+      var minimumBet = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
+      if ($scope.betValue < minimumBet) {
+        $scope.betValue = minimumBet;
+      }
+    }
+  }
+
   function getMyPlayerState() {
     return ($scope.playerStates || []).find(function(player) {
       return player.name === $scope.data.playerName.trim();
@@ -205,7 +223,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('room_updated', function(data) {
     $scope.players = data.players || [];
-    updatePlayerStates(data.playerStates);
+    syncTurnState(data);
   });
 
   socket.on('round_started', function(data) {
@@ -219,30 +237,20 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundHistory = [];
     $scope.tableCards = [];
     $scope.pendingPlayCard = null;
-    updatePlayerStates(data.playerStates);
+    syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
     showMessage('Fase de apostas iniciada!', 'success');
   });
 
   socket.on('turn_update', function(data) {
-    $scope.isMyTurn = socket.id() === data.currentPlayerId;
-    updatePlayerStates(data.playerStates);
-
-    if ($scope.isMyTurn) {
-      $scope.betError = '';
-      var myPlayerState = getMyPlayerState();
-      var minimumBet = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
-      if ($scope.betValue < minimumBet) {
-        $scope.betValue = minimumBet;
-      }
-    }
+    syncTurnState(data);
   });
 
   socket.on('playing_started', function(data) {
     $scope.roomStatus = 'PLAYING';
     $scope.pendingPlayCard = null;
-    updatePlayerStates(data.playerStates);
+    syncTurnState(data);
     showMessage(data.message, 'success');
   });
 
@@ -278,7 +286,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
       $scope.pendingPlayCard = null;
     }
-    updatePlayerStates(data.playerStates);
+    syncTurnState(data);
   });
 
   socket.on('history_updated', function(data) {
@@ -344,7 +352,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.roundResults = [];
     $scope.pendingPlayCard = null;
-    updatePlayerStates(data.playerStates);
+    syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
     showMessage('Nova rodada começou!', 'success');
