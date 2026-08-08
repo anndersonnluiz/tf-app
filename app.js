@@ -135,6 +135,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.message = '';
   }
 
+  $scope.closeHistory = function() {
+    $scope.showHistoryModal = false;
+  };
+
   $scope.openHistory = function() {
     if (!$scope.roundHistory || !$scope.roundHistory.length) {
       showMessage('O histórico aparece depois que a primeira vaza é resolvida.', 'error');
