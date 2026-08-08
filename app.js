@@ -50,6 +50,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.tableCards = [];
   $scope.roomStatus = '';
   $scope.isMyTurn = false;
+  $scope.pendingPlayCard = null;
   $scope.betValue = 0;
   $scope.betError = '';
   $scope.roundHistory = [];
@@ -177,14 +178,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.playCard = function(card) {
-    if (!$scope.isMyTurn || $scope.roomStatus !== 'PLAYING') {
+    if (!$scope.isMyTurn || $scope.roomStatus !== 'PLAYING' || $scope.pendingPlayCard) {
       return;
     }
 
-    var index = $scope.myHand.indexOf(card);
-    if (index > -1) {
-      $scope.myHand.splice(index, 1);
-    }
+    $scope.pendingPlayCard = card;
+    $scope.isMyTurn = false;
 
     socket.emit('play_card', {
       roomCode: $scope.currentRoomCode,
@@ -219,6 +218,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.betError = '';
     $scope.roundHistory = [];
     $scope.tableCards = [];
+    $scope.pendingPlayCard = null;
     updatePlayerStates(data.playerStates);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -241,6 +241,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('playing_started', function(data) {
     $scope.roomStatus = 'PLAYING';
+    $scope.pendingPlayCard = null;
     updatePlayerStates(data.playerStates);
     showMessage(data.message, 'success');
   });
@@ -251,10 +252,32 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('hand_dealt', function(data) {
     $scope.myHand = data.hand || [];
+    $scope.pendingPlayCard = null;
   });
 
   socket.on('table_updated', function(data) {
     $scope.tableCards = data.tableCards || [];
+    if ($scope.pendingPlayCard) {
+      var playedCardConfirmed = $scope.tableCards.some(function(tableCard) {
+        return (
+          tableCard.playerName === $scope.data.playerName.trim() &&
+          tableCard.card &&
+          tableCard.card.value === $scope.pendingPlayCard.value &&
+          tableCard.card.suit === $scope.pendingPlayCard.suit
+        );
+      });
+
+      if (playedCardConfirmed) {
+        $scope.myHand = ($scope.myHand || []).filter(function(handCard) {
+          return !(
+            handCard.value === $scope.pendingPlayCard.value &&
+            handCard.suit === $scope.pendingPlayCard.suit
+          );
+        });
+      }
+
+      $scope.pendingPlayCard = null;
+    }
     updatePlayerStates(data.playerStates);
   });
 
@@ -304,6 +327,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.myHand = [];
     $scope.isMyTurn = false;
+    $scope.pendingPlayCard = null;
     updatePlayerStates(data.playerStates);
     showMessage('Rodada finalizada. A próxima começa em 7 segundos.', 'success');
   });
@@ -319,6 +343,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundHistory = [];
     $scope.tableCards = [];
     $scope.roundResults = [];
+    $scope.pendingPlayCard = null;
     updatePlayerStates(data.playerStates);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -328,11 +353,13 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   socket.on('game_over', function(data) {
     $scope.currentView = 'game_over';
     $scope.gameOver = data;
+    $scope.pendingPlayCard = null;
     updatePlayerStates(data.playerStates);
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
 
   socket.on('error', function(data) {
+    $scope.pendingPlayCard = null;
     showMessage(data.message, 'error');
   });
 
