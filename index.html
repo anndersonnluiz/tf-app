@@ -279,6 +279,7 @@
       align-items: flex-end;
       gap: 12px;
       margin-bottom: 14px;
+      text-align: left;
     }
 
     .status-board-header h3 {
@@ -289,6 +290,7 @@
     .status-board-header span {
       color: var(--text-muted);
       font-size: 0.85rem;
+      max-width: 360px;
     }
 
     .status-board-grid {
@@ -469,6 +471,21 @@
       gap: 10px;
       margin-top: 20px;
       flex-wrap: wrap;
+    }
+
+    .history-button {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 8px 15px;
+      font-size: 0.85rem;
+      border-radius: 20px;
+    }
+
+    .history-button:disabled {
+      border-color: var(--border-color);
+      color: var(--text-muted);
+      opacity: 1;
     }
 
     .betting-area,
@@ -743,9 +760,45 @@
         grid-template-columns: 1fr;
       }
 
+      .status-board-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .status-board-header span {
+        max-width: none;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .status-card {
+        padding: 16px;
+        min-height: auto;
+      }
+
       .table-area-head {
         flex-direction: column;
         align-items: stretch;
+        margin-bottom: 12px;
+      }
+
+      .history-button {
+        width: 100%;
+      }
+
+      .table-surface {
+        padding: 16px 14px 24px;
+      }
+
+      .hand-area {
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .hand-area .playing-card {
+        width: 74px;
+        height: 108px;
       }
 
       .round-results-head,
@@ -918,7 +971,7 @@
       <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0">
         <div class="table-area-head">
           <h3>Mesa</h3>
-          <button class="btn" style="background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 8px 15px; font-size: 0.85rem; border-radius: 20px;" ng-click="showHistoryModal = true">
+          <button class="btn history-button" ng-click="openHistory()" ng-disabled="roundHistory.length === 0">
             Histórico
           </button>
         </div>
@@ -1000,7 +1053,7 @@
       <p class="game-over-text">
         <strong class="game-over-winner">{{ gameOver.winner }}</strong> é o grande vencedor!
       </p>
-      <button class="btn btn-primary game-over-button" ng-click="currentView = 'login'">Jogar novamente</button>
+      <button class="btn btn-primary game-over-button" ng-click="playAgain()">Jogar novamente</button>
     </div>
 
     <div class="message" ng-class="messageType" ng-show="message">

@@ -111,6 +111,44 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }, 4000);
   }
 
+  function resetToLobby() {
+    $scope.currentView = 'login';
+    $scope.currentRoomCode = '';
+    $scope.players = [];
+    $scope.playerStates = [];
+    $scope.currentRound = 0;
+    $scope.currentTrump = null;
+    $scope.cardsPerPlayer = 5;
+    $scope.myHand = [];
+    $scope.tableCards = [];
+    $scope.roomStatus = '';
+    $scope.isMyTurn = false;
+    $scope.pendingPlayCard = null;
+    $scope.betValue = 0;
+    $scope.betError = '';
+    $scope.roundHistory = [];
+    $scope.showHistoryModal = false;
+    $scope.toastMessage = null;
+    $scope.toastClass = '';
+    $scope.roundResults = [];
+    $scope.gameOver = null;
+    $scope.message = '';
+  }
+
+  $scope.openHistory = function() {
+    if (!$scope.roundHistory || !$scope.roundHistory.length) {
+      showMessage('O histórico aparece depois que a primeira vaza é resolvida.', 'error');
+      return;
+    }
+
+    $scope.showHistoryModal = true;
+  };
+
+  $scope.playAgain = function() {
+    resetToLobby();
+    showMessage('Você voltou para a tela inicial.', 'success');
+  };
+
   $scope.quickMatch = function() {
     if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
       showMessage('Por favor, digite seu apelido antes de jogar.', 'error');
@@ -210,12 +248,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   socket.on('room_created', function(data) {
+    $scope.showHistoryModal = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     showMessage('Sala criada com sucesso!', 'success');
   });
 
   socket.on('room_joined', function(data) {
+    $scope.showHistoryModal = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     showMessage('Conectado à sala com sucesso!', 'success');
@@ -362,6 +402,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentView = 'game_over';
     $scope.gameOver = data;
     $scope.pendingPlayCard = null;
+    $scope.showHistoryModal = false;
     updatePlayerStates(data.playerStates);
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
