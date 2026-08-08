@@ -54,7 +54,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.betValue = 0;
   $scope.betError = '';
   $scope.roundHistory = [];
-  $scope.showHistoryModal = false;
+  $scope.showHistoryPanel = false;
   $scope.toastMessage = null;
   $scope.toastClass = '';
   $scope.roundResults = [];
@@ -127,7 +127,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.betValue = 0;
     $scope.betError = '';
     $scope.roundHistory = [];
-    $scope.showHistoryModal = false;
+    $scope.showHistoryPanel = false;
     $scope.toastMessage = null;
     $scope.toastClass = '';
     $scope.roundResults = [];
@@ -136,13 +136,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   }
 
   $scope.closeHistory = function() {
-    $scope.showHistoryModal = false;
-  };
-
-  window.__tfCloseHistory = function() {
-    $scope.$applyAsync(function() {
-      $scope.showHistoryModal = false;
-    });
+    $scope.showHistoryPanel = false;
   };
 
   $scope.openHistory = function() {
@@ -151,7 +145,16 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
-    $scope.showHistoryModal = true;
+    $scope.showHistoryPanel = true;
+  };
+
+  $scope.toggleHistory = function() {
+    if (!$scope.roundHistory || !$scope.roundHistory.length) {
+      showMessage('O histÃ³rico aparece depois que a primeira vaza Ã© resolvida.', 'error');
+      return;
+    }
+
+    $scope.showHistoryPanel = !$scope.showHistoryPanel;
   };
 
   $scope.playAgain = function() {
@@ -258,14 +261,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   socket.on('room_created', function(data) {
-    $scope.showHistoryModal = false;
+    $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     showMessage('Sala criada com sucesso!', 'success');
   });
 
   socket.on('room_joined', function(data) {
-    $scope.showHistoryModal = false;
+    $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     showMessage('Conectado à sala com sucesso!', 'success');
@@ -412,7 +415,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentView = 'game_over';
     $scope.gameOver = data;
     $scope.pendingPlayCard = null;
-    $scope.showHistoryModal = false;
+    $scope.showHistoryPanel = false;
     updatePlayerStates(data.playerStates);
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
