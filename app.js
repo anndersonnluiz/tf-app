@@ -384,6 +384,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    if ($scope.roomStatus === 'RESOLVING_TRICK') {
+      $scope.roomStatus = 'PLAYING';
+    }
+
     syncTurnState(data);
   });
 
