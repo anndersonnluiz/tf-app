@@ -350,6 +350,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('table_updated', function(data) {
     $scope.tableCards = data.tableCards || [];
+    var activePlayersCount = (data.playerStates || []).filter(function(player) {
+      return !player.eliminated;
+    }).length;
+    var isResolvingTrick = activePlayersCount > 0 && $scope.tableCards.length === activePlayersCount;
 
     if ($scope.pendingPlayCard) {
       var playedCardConfirmed = $scope.tableCards.some(function(tableCard) {
@@ -373,6 +377,13 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       $scope.pendingPlayCard = null;
     }
 
+    if (isResolvingTrick) {
+      $scope.roomStatus = 'RESOLVING_TRICK';
+      $scope.isMyTurn = false;
+      updatePlayerStates(data.playerStates);
+      return;
+    }
+
     syncTurnState(data);
   });
 
@@ -382,6 +393,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('trick_resolved', function(data) {
     updatePlayerStates(data.playerStates);
+    $scope.isMyTurn = false;
 
     if (data.isTie) {
       $scope.toastMessage = 'Bucha! ' + data.starterName + ' mantém a vez.';
