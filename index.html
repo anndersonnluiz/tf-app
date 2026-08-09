@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" ng-app="tfApp">
 <head>
   <meta charset="UTF-8">
@@ -70,16 +70,6 @@
       margin: 24px 0;
     }
 
-    .lobby-container.login-shell {
-      max-width: 1180px;
-      padding: 34px 34px 42px;
-      text-align: left;
-      background:
-        radial-gradient(circle at top right, rgba(79, 172, 254, 0.16), transparent 26%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0.08) 100%),
-        var(--panel-bg);
-    }
-
     .logo {
       margin-bottom: 24px;
       display: flex;
@@ -91,168 +81,6 @@
       width: min(100%, 220px);
       height: auto;
       display: block;
-    }
-
-    .landing-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(320px, 420px);
-      gap: 28px;
-      align-items: start;
-    }
-
-    .landing-content {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-    }
-
-    .landing-kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(79, 172, 254, 0.12);
-      color: #9bd8ff;
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      width: fit-content;
-    }
-
-    .landing-hero h1 {
-      font-size: clamp(2.4rem, 5vw, 4.3rem);
-      line-height: 0.98;
-      letter-spacing: -0.04em;
-      margin-bottom: 16px;
-      color: #f7fbff;
-      max-width: 11ch;
-    }
-
-    .landing-hero p {
-      color: #bfd0dc;
-      font-size: 1.08rem;
-      line-height: 1.7;
-      max-width: 60ch;
-    }
-
-    .landing-highlight {
-      color: #62d8ff;
-    }
-
-    .landing-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .landing-badge {
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      color: var(--text-main);
-      font-size: 0.92rem;
-      font-weight: 600;
-    }
-
-    .landing-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .landing-card {
-      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-      border: 1px solid rgba(79, 172, 254, 0.14);
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    .landing-card h3 {
-      font-size: 1.05rem;
-      color: #f6fbff;
-      margin-bottom: 10px;
-    }
-
-    .landing-card p,
-    .landing-card li {
-      color: #b8cad6;
-      font-size: 0.95rem;
-      line-height: 1.6;
-    }
-
-    .landing-card ul {
-      list-style: none;
-      display: grid;
-      gap: 10px;
-    }
-
-    .landing-card li::before {
-      content: '•';
-      color: #61d7ff;
-      margin-right: 8px;
-    }
-
-    .landing-founder {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .landing-founder strong {
-      color: #fff;
-      font-size: 1rem;
-    }
-
-    .landing-form {
-      position: sticky;
-      top: 18px;
-      background: rgba(11, 15, 19, 0.86);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 22px;
-      padding: 22px 20px;
-      box-shadow: 0 24px 40px rgba(0, 0, 0, 0.34);
-      backdrop-filter: blur(10px);
-    }
-
-    .landing-form-header {
-      margin-bottom: 20px;
-    }
-
-    .landing-form-header h2 {
-      font-size: 1.45rem;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-
-    .landing-form-header p {
-      color: #a8bbc8;
-      font-size: 0.95rem;
-      line-height: 1.55;
-    }
-
-    .landing-form .input-group {
-      margin-bottom: 18px;
-    }
-
-    .landing-form .actions {
-      gap: 12px;
-    }
-
-    .landing-form-note {
-      margin-top: 14px;
-      color: #8897a3;
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-
-    .landing-footer {
-      margin-top: 10px;
-      color: #8fa2b0;
-      font-size: 0.85rem;
-      text-align: left;
     }
 
     .input-group {
@@ -1189,51 +1017,6 @@
         width: min(100%, 170px);
       }
 
-      .lobby-container.login-shell {
-        padding: 24px 18px 30px;
-      }
-
-      .landing-layout {
-        grid-template-columns: 1fr;
-        gap: 20px;
-      }
-
-      .landing-content {
-        gap: 18px;
-      }
-
-      .landing-hero h1 {
-        max-width: none;
-        font-size: clamp(2rem, 11vw, 3rem);
-      }
-
-      .landing-hero p {
-        font-size: 0.98rem;
-        line-height: 1.65;
-      }
-
-      .landing-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .landing-card {
-        padding: 16px;
-      }
-
-      .landing-form {
-        position: static;
-        padding: 18px 16px;
-        border-radius: 18px;
-      }
-
-      .landing-form-header h2 {
-        font-size: 1.28rem;
-      }
-
-      .landing-footer {
-        font-size: 0.82rem;
-      }
-
       .btn {
         width: 100%;
         padding: 14px 16px;
@@ -1585,104 +1368,28 @@
     {{ toastMessage }}
   </div>
 
-  <div class="lobby-container" ng-class="{'login-shell': currentView === 'login'}">
+  <div class="lobby-container">
     <div class="logo">
       <img src="./assets/logo-tf-transparent.png" alt="TF Tenha Fé">
     </div>
 
     <div ng-if="currentView === 'login'">
-      <div class="landing-layout">
-        <div class="landing-content">
-          <div class="landing-kicker">Jogo online para amigos</div>
+      <div class="input-group">
+        <label for="nickname">Seu apelido</label>
+        <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
+      </div>
 
-          <div class="landing-hero">
-            <h1>Jogue Tenha Fé direto no navegador.</h1>
-            <p>
-              Reúna a galera, crie uma sala em segundos e entre em partidas rápidas, estratégicas e fáceis de entender.
-              Tudo funciona online, no celular ou no computador, com entrada simples e sem complicação.
-            </p>
-          </div>
+      <div class="actions">
+        <button class="btn btn-primary" ng-click="quickMatch()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Jogar agora
+        </button>
 
-          <div class="landing-badges">
-            <div class="landing-badge">Partidas online em tempo real</div>
-            <div class="landing-badge">Sala privada para jogar com amigos</div>
-            <div class="landing-badge">Entrada rápida pelo navegador</div>
-          </div>
+        <button class="btn btn-secondary" ng-click="createRoom()">Criar sala privada</button>
 
-          <div class="landing-grid">
-            <div class="landing-card">
-              <h3>Como jogar</h3>
-              <ul>
-                <li>Escolha seu apelido e entre em uma partida.</li>
-                <li>Crie uma sala privada ou jogue rapidamente.</li>
-                <li>Faça sua aposta, jogue as cartas e tente acertar a rodada.</li>
-              </ul>
-            </div>
-
-            <div class="landing-card">
-              <h3>Feito para reunir</h3>
-              <p>
-                O Tenha Fé foi pensado para quem quer jogar com amigos sem instalar nada, com partidas leves,
-                dinâmicas e fáceis de começar.
-              </p>
-            </div>
-
-            <div class="landing-card">
-              <h3>Experiência simples</h3>
-              <p>
-                Entrou, criou a sala, chamou a galera e começou. O foco aqui é jogar bem, rápido e com boa leitura no celular.
-              </p>
-            </div>
-
-            <div class="landing-card">
-              <h3>Projeto oficial</h3>
-              <div class="landing-founder">
-                <strong>Fundador: Anderson Luiz</strong>
-                <p>
-                  Um projeto da AM Tech criado para levar a experiência do jogo entre amigos para a internet de forma moderna,
-                  prática e acessível.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div class="landing-footer">
-            © 2026 AM Tech. Tenha Fé é uma experiência online feita para jogar, reunir e competir com leveza.
-          </div>
-        </div>
-
-        <div class="landing-form">
-          <div class="landing-form-header">
-            <h2>Entre e jogue agora</h2>
-            <p>
-              Escolha seu apelido para começar. Você pode entrar em uma partida rápida, criar sua própria sala
-              ou usar um código enviado por um amigo.
-            </p>
-          </div>
-
-          <div class="input-group">
-            <label for="nickname">Seu apelido</label>
-            <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
-          </div>
-
-          <div class="actions">
-            <button class="btn btn-primary" ng-click="quickMatch()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-              Jogar agora
-            </button>
-
-            <button class="btn btn-secondary" ng-click="createRoom()">Criar sala privada</button>
-
-            <div class="room-actions">
-              <input type="text" ng-model="data.roomCodeInput" placeholder="Código da sala" maxlength="4">
-              <button class="btn btn-secondary" ng-click="joinRoom()">Entrar</button>
-            </div>
-          </div>
-
-          <div class="landing-form-note">
-            Se alguém já criou a sala, basta digitar o código e entrar. Se quiser começar imediatamente,
-            use “Jogar agora”.
-          </div>
+        <div class="room-actions">
+          <input type="text" ng-model="data.roomCodeInput" placeholder="CÓDIGO" maxlength="4">
+          <button class="btn btn-secondary" ng-click="joinRoom()">Entrar</button>
         </div>
       </div>
     </div>
