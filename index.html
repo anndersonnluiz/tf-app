@@ -523,6 +523,37 @@
       border: 1px dashed #555;
     }
 
+    .table-cards {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 0;
+    }
+
+    .table-card-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 86px;
+    }
+
+    .table-card-player {
+      max-width: 92px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      font-size: 0.75rem;
+      line-height: 1.2;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .table-surface.is-empty {
       display: flex;
       align-items: center;
@@ -993,6 +1024,36 @@
         font-size: 0.9rem;
       }
 
+      .table-cards {
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .table-card-slot {
+        min-width: 64px;
+        gap: 6px;
+      }
+
+      .table-card-slot .playing-card {
+        width: 62px;
+        height: 90px;
+      }
+
+      .table-card-slot .playing-card .top-left,
+      .table-card-slot .playing-card .bottom-right {
+        font-size: 0.86rem;
+      }
+
+      .table-card-slot .playing-card div[style*="font-size: 2.5rem"] {
+        font-size: 2rem !important;
+      }
+
+      .table-card-player {
+        max-width: 68px;
+        padding: 3px 6px;
+        font-size: 0.68rem;
+      }
+
       .hand-area {
         gap: 12px;
         margin-top: 16px;
@@ -1319,12 +1380,14 @@
           <div class="empty-table-copy" ng-if="tableCards.length === 0">
             Nenhuma carta foi jogada ainda. Assim que a vaza começar, as cartas aparecem aqui.
           </div>
-          <div class="hand-area" style="margin-top: 0;">
-            <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
-              <div class="top-left">{{ tc.card.value }}</div>
-              <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
-              <div class="bottom-right">{{ tc.card.value }}</div>
-              <div style="position: absolute; bottom: -28px; font-size: 0.8rem; color: #fff; background: var(--secondary-hover); padding: 3px 8px; border-radius: 4px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">{{ tc.playerName }}</div>
+          <div class="table-cards">
+            <div class="table-card-slot" ng-repeat="tc in tableCards track by $index">
+              <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}">
+                <div class="top-left">{{ tc.card.value }}</div>
+                <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(tc.card.suit) }}</div>
+                <div class="bottom-right">{{ tc.card.value }}</div>
+              </div>
+              <div class="table-card-player">{{ tc.playerName }}</div>
             </div>
           </div>
         </div>
