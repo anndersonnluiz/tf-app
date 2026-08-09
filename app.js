@@ -96,6 +96,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   }
 
   function syncTurnState(data) {
+    if (data && data.status) {
+      $scope.roomStatus = data.status;
+    }
+
     updatePlayerStates(data && data.playerStates);
 
     var myPlayerState = getMyPlayerState();
@@ -333,7 +337,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   });
 
   socket.on('playing_started', function(data) {
-    $scope.roomStatus = 'PLAYING';
     $scope.pendingPlayCard = null;
     syncTurnState(data);
     showMessage(data.message, 'success');
@@ -350,10 +353,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('table_updated', function(data) {
     $scope.tableCards = data.tableCards || [];
-    var activePlayersCount = (data.playerStates || []).filter(function(player) {
-      return !player.eliminated;
-    }).length;
-    var isResolvingTrick = activePlayersCount > 0 && $scope.tableCards.length === activePlayersCount;
 
     if ($scope.pendingPlayCard) {
       var playedCardConfirmed = $scope.tableCards.some(function(tableCard) {
@@ -377,17 +376,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       $scope.pendingPlayCard = null;
     }
 
-    if (isResolvingTrick) {
-      $scope.roomStatus = 'RESOLVING_TRICK';
-      $scope.isMyTurn = false;
-      updatePlayerStates(data.playerStates);
-      return;
-    }
-
-    if ($scope.roomStatus === 'RESOLVING_TRICK') {
-      $scope.roomStatus = 'PLAYING';
-    }
-
     syncTurnState(data);
   });
 
@@ -396,6 +384,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   });
 
   socket.on('trick_resolved', function(data) {
+    syncTurnState(data);
     updatePlayerStates(data.playerStates);
     $scope.isMyTurn = false;
 
