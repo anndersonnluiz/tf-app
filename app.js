@@ -59,6 +59,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.toastClass = '';
   $scope.roundResults = [];
   $scope.gameOver = null;
+  $scope.rematch = {
+    acceptedPlayers: [],
+    totalPlayers: 0,
+    requestedBy: '',
+    hasRequested: false
+  };
   $scope.message = '';
   $scope.messageType = 'success';
 
@@ -74,6 +80,19 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return ($scope.playerStates || []).find(function(player) {
       return player.name === $scope.data.playerName.trim();
     });
+  }
+
+  function createEmptyRematchState() {
+    return {
+      acceptedPlayers: [],
+      totalPlayers: 0,
+      requestedBy: '',
+      hasRequested: false
+    };
+  }
+
+  function resetRematchState() {
+    $scope.rematch = createEmptyRematchState();
   }
 
   function syncTurnState(data) {
@@ -132,6 +151,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.toastClass = '';
     $scope.roundResults = [];
     $scope.gameOver = null;
+    resetRematchState();
     $scope.message = '';
   }
 
@@ -158,6 +178,15 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.playAgain = function() {
+    if (!$scope.currentRoomCode || $scope.rematch.hasRequested) {
+      return;
+    }
+
+    $scope.rematch.hasRequested = true;
+    socket.emit('request_rematch', { roomCode: $scope.currentRoomCode });
+  };
+
+  $scope.leaveToLobby = function() {
     resetToLobby();
     showMessage('Você voltou para a tela inicial.', 'success');
   };
@@ -290,6 +319,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundHistory = [];
     $scope.tableCards = [];
     $scope.pendingPlayCard = null;
+    $scope.gameOver = null;
+    resetRematchState();
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -318,6 +349,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('table_updated', function(data) {
     $scope.tableCards = data.tableCards || [];
+
     if ($scope.pendingPlayCard) {
       var playedCardConfirmed = $scope.tableCards.some(function(tableCard) {
         return (
@@ -339,6 +371,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
       $scope.pendingPlayCard = null;
     }
+
     syncTurnState(data);
   });
 
@@ -404,6 +437,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.roundResults = [];
     $scope.pendingPlayCard = null;
+    $scope.gameOver = null;
+    resetRematchState();
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -416,7 +451,22 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.pendingPlayCard = null;
     $scope.showHistoryPanel = false;
     updatePlayerStates(data.playerStates);
+    resetRematchState();
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
+  });
+
+  socket.on('rematch_updated', function(data) {
+    $scope.rematch.acceptedPlayers = data.acceptedPlayers || [];
+    $scope.rematch.totalPlayers = data.totalPlayers || 0;
+    $scope.rematch.requestedBy = data.requestedBy || '';
+
+    if (!$scope.rematch.hasRequested && data.requestedBy) {
+      showMessage(data.requestedBy + ' quer jogar novamente. Confirme para iniciar outra partida.', 'success');
+    }
+  });
+
+  socket.on('rematch_started', function(data) {
+    showMessage(data.message || 'Nova partida iniciada!', 'success');
   });
 
   socket.on('error', function(data) {

@@ -711,6 +711,30 @@
       justify-content: center;
     }
 
+    .game-over-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .game-over-status {
+      margin: 0 auto 18px;
+      max-width: 360px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .game-over-status strong {
+      color: var(--text-main);
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -889,6 +913,11 @@
       .game-over-text {
         font-size: 1.1rem;
         margin-bottom: 22px;
+      }
+
+      .game-over-status {
+        font-size: 0.92rem;
+        padding: 12px 14px;
       }
     }
   </style>
@@ -1103,7 +1132,23 @@
       <p class="game-over-text">
         <strong class="game-over-winner">{{ gameOver.winner }}</strong> é o grande vencedor!
       </p>
-      <button class="btn btn-primary game-over-button" ng-click="playAgain()">Jogar novamente</button>
+      <div class="game-over-status" ng-if="rematch.totalPlayers > 0">
+        <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores confirmaram nova partida.
+        <div ng-if="rematch.acceptedPlayers.length">
+          Confirmados: {{ rematch.acceptedPlayers.join(', ') }}
+        </div>
+      </div>
+      <div class="game-over-actions">
+        <button
+          class="btn btn-primary game-over-button"
+          ng-click="playAgain()"
+          ng-disabled="rematch.hasRequested">
+          {{ rematch.hasRequested ? 'Aguardando os outros jogadores...' : 'Jogar novamente' }}
+        </button>
+        <button class="btn btn-secondary game-over-button" ng-click="leaveToLobby()">
+          Voltar ao início
+        </button>
+      </div>
     </div>
 
     <div class="message" ng-class="messageType" ng-show="message">
