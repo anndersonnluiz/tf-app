@@ -273,6 +273,36 @@
       text-align: left;
     }
 
+    .round-snapshot {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
+
+    .snapshot-card {
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.16);
+      border-radius: 14px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .snapshot-label {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .snapshot-value {
+      color: var(--text-main);
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
     .status-board-header {
       display: flex;
       justify-content: space-between;
@@ -491,6 +521,22 @@
       padding: 20px;
       border-radius: 12px;
       border: 1px dashed #555;
+    }
+
+    .table-surface.is-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 110px;
+      padding: 18px;
+    }
+
+    .empty-table-copy {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      text-align: center;
+      line-height: 1.45;
+      max-width: 260px;
     }
 
     .hand-area {
@@ -798,6 +844,29 @@
         grid-template-columns: 1fr;
       }
 
+      .round-snapshot {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin: 14px 0 18px;
+      }
+
+      .snapshot-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        padding: 12px 14px;
+      }
+
+      .snapshot-label {
+        margin-bottom: 0;
+        font-size: 0.76rem;
+      }
+
+      .snapshot-value {
+        font-size: 1.02rem;
+      }
+
       .status-board-header {
         flex-direction: column;
         align-items: stretch;
@@ -845,6 +914,15 @@
       .table-surface {
         min-height: 110px;
         padding: 14px 12px 22px;
+      }
+
+      .table-surface.is-empty {
+        min-height: 86px;
+        padding: 14px 12px;
+      }
+
+      .empty-table-copy {
+        font-size: 0.9rem;
       }
 
       .hand-area {
@@ -983,6 +1061,21 @@
         </p>
       </div>
 
+      <div class="round-snapshot">
+        <div class="snapshot-card">
+          <div class="snapshot-label">Fase</div>
+          <div class="snapshot-value">{{ getPhaseLabel() }}</div>
+        </div>
+        <div class="snapshot-card">
+          <div class="snapshot-label">Cartas na mão</div>
+          <div class="snapshot-value">{{ myHand.length }}</div>
+        </div>
+        <div class="snapshot-card">
+          <div class="snapshot-label">Vazas fechadas</div>
+          <div class="snapshot-value">{{ getCompletedTricks() }}</div>
+        </div>
+      </div>
+
       <div class="trump-area" ng-if="currentTrump">
         <span>Trunfo da rodada</span>
         <div class="playing-card disabled-card" ng-style="{'color': getCardColor(currentTrump.suit)}">
@@ -1052,7 +1145,10 @@
           <button type="button" class="btn btn-secondary" style="margin-top: 16px; width: 100%; padding: 10px;" ng-click="closeHistory()">Fechar histórico</button>
         </div>
 
-        <div class="table-surface">
+        <div class="table-surface" ng-class="{'is-empty': tableCards.length === 0}">
+          <div class="empty-table-copy" ng-if="tableCards.length === 0">
+            Nenhuma carta foi jogada ainda. Assim que a vaza começar, as cartas aparecem aqui.
+          </div>
           <div class="hand-area" style="margin-top: 0;">
             <div class="playing-card disabled-card" ng-class="{'glow-winner': tc.isWinner}" ng-style="{'color': getCardColor(tc.card.suit)}" ng-repeat="tc in tableCards track by $index">
               <div class="top-left">{{ tc.card.value }}</div>

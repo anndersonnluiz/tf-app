@@ -503,4 +503,24 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
         return '#333';
     }
   };
+
+  $scope.getPhaseLabel = function() {
+    if ($scope.roomStatus === 'BETTING') {
+      return 'Apostas';
+    }
+
+    if ($scope.roomStatus === 'PLAYING') {
+      return 'Jogando';
+    }
+
+    if ($scope.roomStatus === 'RESOLVING_TRICK') {
+      return 'Fechando vaza';
+    }
+
+    return 'Rodada';
+  };
+
+  $scope.getCompletedTricks = function() {
+    return ($scope.roundHistory || []).length;
+  };
 });
