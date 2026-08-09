@@ -555,4 +555,26 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
     return 'Perdeu vida';
   };
+
+  $scope.isRoomOwner = function(player) {
+    if (!player || !$scope.players || !$scope.players.length) {
+      return false;
+    }
+
+    return $scope.players[0].socketId === player.socketId;
+  };
+
+  $scope.canStartMatch = function() {
+    return ($scope.players || []).length >= 2;
+  };
+
+  $scope.getRoomStatusLabel = function() {
+    var totalPlayers = ($scope.players || []).length;
+
+    if (totalPlayers < 2) {
+      return 'Aguardando mais jogadores';
+    }
+
+    return 'Sala pronta para iniciar';
+  };
 });

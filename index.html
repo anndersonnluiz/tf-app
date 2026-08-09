@@ -241,9 +241,68 @@
       padding-bottom: 10px;
     }
 
+    .room-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .room-summary-card {
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.16);
+      border-radius: 14px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .room-summary-label {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .room-summary-value {
+      color: var(--text-main);
+      font-size: 1.08rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .room-status-banner {
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      text-align: left;
+    }
+
+    .room-status-banner.ready {
+      border-color: rgba(16, 185, 129, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.08);
+    }
+
+    .room-status-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .room-status-copy {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
     .player-item {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      gap: 10px;
       padding: 10px;
       background: #2a2a2a;
       margin-bottom: 8px;
@@ -266,6 +325,45 @@
       justify-content: center;
       font-weight: 700;
       margin-right: 12px;
+    }
+
+    .player-main {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .player-name {
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .player-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .player-tag.owner {
+      background: rgba(79, 172, 254, 0.16);
+      color: #7dd3fc;
+      border: 1px solid rgba(79, 172, 254, 0.28);
+    }
+
+    .player-tag.you {
+      background: rgba(16, 185, 129, 0.16);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.28);
     }
 
     .status-board {
@@ -939,6 +1037,40 @@
         letter-spacing: 3px;
       }
 
+      .room-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .room-summary-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        padding: 12px 14px;
+      }
+
+      .room-summary-label {
+        margin-bottom: 0;
+      }
+
+      .room-summary-value {
+        font-size: 0.98rem;
+      }
+
+      .room-status-banner {
+        padding: 12px 14px;
+        margin-bottom: 16px;
+      }
+
+      .room-status-title {
+        font-size: 0.94rem;
+      }
+
+      .room-status-copy {
+        font-size: 0.88rem;
+      }
+
       .status-board-grid {
         grid-template-columns: 1fr;
       }
@@ -1268,18 +1400,46 @@
         <div class="room-code-display">{{ currentRoomCode }}</div>
       </div>
 
-      <div class="players-list">
-        <h3>Jogadores ({{ players.length }}/5)</h3>
-        <div class="player-item" ng-repeat="player in players">
-          <div class="player-avatar">{{ player.name.charAt(0).toUpperCase() }}</div>
-          {{ player.name }}
+      <div class="room-summary">
+        <div class="room-summary-card">
+          <div class="room-summary-label">Jogadores</div>
+          <div class="room-summary-value">{{ players.length }}/5</div>
+        </div>
+        <div class="room-summary-card">
+          <div class="room-summary-label">Vagas</div>
+          <div class="room-summary-value">{{ 5 - players.length }}</div>
+        </div>
+        <div class="room-summary-card">
+          <div class="room-summary-label">Status</div>
+          <div class="room-summary-value">{{ getRoomStatusLabel() }}</div>
         </div>
       </div>
 
-      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="players.length < 2">
+      <div class="room-status-banner" ng-class="{'ready': canStartMatch()}">
+        <div class="room-status-title">{{ canStartMatch() ? 'Tudo pronto para começar' : 'Falta mais gente na sala' }}</div>
+        <div class="room-status-copy">
+          {{ canStartMatch()
+            ? 'O criador da sala já pode iniciar a partida. Assim que começar, a ordem do jogo será organizada automaticamente.'
+            : 'Assim que entrar pelo menos mais um jogador, a sala ficará pronta para iniciar a partida.' }}
+        </div>
+      </div>
+
+      <div class="players-list">
+        <h3>Jogadores ({{ players.length }}/5)</h3>
+        <div class="player-item" ng-repeat="player in players">
+          <div class="player-main">
+            <div class="player-avatar">{{ player.name.charAt(0).toUpperCase() }}</div>
+            <div class="player-name">{{ player.name }}</div>
+          </div>
+          <div class="player-tag owner" ng-if="isRoomOwner(player)">Criador</div>
+          <div class="player-tag you" ng-if="!isRoomOwner(player) && player.name === data.playerName.trim()">VocÃª</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="!canStartMatch()">
         Iniciar partida
       </button>
-      <p ng-if="players.length < 2" style="color: var(--text-muted); margin-top: 12px;">
+      <p ng-if="!canStartMatch()" style="color: var(--text-muted); margin-top: 12px;">
         A partida começa com pelo menos 2 jogadores.
       </p>
     </div>
