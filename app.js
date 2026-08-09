@@ -523,4 +523,36 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.getCompletedTricks = function() {
     return ($scope.roundHistory || []).length;
   };
+
+  $scope.getRoundResultStatus = function(result) {
+    if (!result) {
+      return '';
+    }
+
+    if (result.eliminated) {
+      return 'eliminated';
+    }
+
+    if ((result.penalty || 0) === 0) {
+      return 'perfect';
+    }
+
+    return 'penalty';
+  };
+
+  $scope.getRoundResultLabel = function(result) {
+    if (!result) {
+      return '';
+    }
+
+    if (result.eliminated) {
+      return 'Eliminado';
+    }
+
+    if ((result.penalty || 0) === 0) {
+      return 'Acertou';
+    }
+
+    return 'Perdeu vida';
+  };
 });

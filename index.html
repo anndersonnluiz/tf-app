@@ -692,6 +692,22 @@
       margin-bottom: 20px;
     }
 
+    .round-results-summary {
+      margin: 0 auto 18px;
+      max-width: 460px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      line-height: 1.45;
+    }
+
+    .round-results-cards {
+      display: none;
+    }
+
     .round-results-panel {
       overflow: hidden;
     }
@@ -717,6 +733,37 @@
     .round-results-row {
       border-top: 1px solid #333;
       align-items: center;
+    }
+
+    .round-results-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 8px;
+    }
+
+    .round-results-tag.perfect {
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .round-results-tag.penalty {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .round-results-tag.eliminated {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
     .game-over-view {
@@ -960,6 +1007,75 @@
         font-size: 0.84rem;
       }
 
+      .round-results-summary {
+        font-size: 0.92rem;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+      }
+
+      .round-results-panel {
+        display: none;
+      }
+
+      .round-results-cards {
+        display: grid;
+        gap: 12px;
+      }
+
+      .round-result-card {
+        text-align: left;
+        padding: 14px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+        border: 1px solid rgba(79, 172, 254, 0.16);
+      }
+
+      .round-result-card.perfect {
+        border-color: rgba(16, 185, 129, 0.3);
+        box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.12);
+      }
+
+      .round-result-card.penalty {
+        border-color: rgba(245, 158, 11, 0.28);
+      }
+
+      .round-result-card.eliminated {
+        border-color: rgba(239, 68, 68, 0.28);
+      }
+
+      .round-result-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .round-result-card-name {
+        color: var(--text-main);
+        font-size: 1rem;
+        font-weight: 700;
+        word-break: break-word;
+      }
+
+      .round-result-card-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 14px;
+      }
+
+      .round-result-stat-label {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        margin-bottom: 4px;
+      }
+
+      .round-result-stat-value {
+        color: var(--text-main);
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
       .stepper {
         gap: 18px;
       }
@@ -1198,6 +1314,9 @@
 
     <div ng-if="currentView === 'round_results'" class="round-results-view">
       <h2>Resultado da rodada</h2>
+      <div class="round-results-summary">
+        Confira quem acertou a aposta, quem perdeu vida e quem segue forte para a próxima rodada.
+      </div>
       <div class="round-results-panel">
         <div class="round-results-head">
           <span>Jogador</span>
@@ -1208,13 +1327,45 @@
         <div class="round-results-row" ng-repeat="r in roundResults" ng-style="{'opacity': r.eliminated ? 0.5 : 1}">
           <span style="color: white; font-weight: 500;">
             {{ r.name }}
-            <span ng-if="r.eliminated" style="color: #ef4444; font-size: 0.75rem;">(eliminado)</span>
+            <span class="round-results-tag" ng-class="getRoundResultStatus(r)">
+              {{ getRoundResultLabel(r) }}
+            </span>
           </span>
           <span style="color: #94a3b8;">{{ r.bet }}</span>
           <span style="color: #94a3b8;">{{ r.tricksWon }}</span>
           <span ng-style="{'color': r.penalty > 0 ? '#ef4444' : '#10b981'}">
             {{ r.lives }} <span ng-if="r.penalty > 0" style="font-size: 0.8rem;">(-{{ r.penalty }})</span>
           </span>
+        </div>
+      </div>
+      <div class="round-results-cards">
+        <div class="round-result-card" ng-class="getRoundResultStatus(r)" ng-repeat="r in roundResults">
+          <div class="round-result-card-head">
+            <div class="round-result-card-name">{{ r.name }}</div>
+            <div class="round-results-tag" ng-class="getRoundResultStatus(r)">
+              {{ getRoundResultLabel(r) }}
+            </div>
+          </div>
+          <div class="round-result-card-stats">
+            <div>
+              <div class="round-result-stat-label">Apostou</div>
+              <div class="round-result-stat-value">{{ r.bet }}</div>
+            </div>
+            <div>
+              <div class="round-result-stat-label">Fez</div>
+              <div class="round-result-stat-value">{{ r.tricksWon }}</div>
+            </div>
+            <div>
+              <div class="round-result-stat-label">Vidas</div>
+              <div class="round-result-stat-value">{{ r.lives }}</div>
+            </div>
+            <div>
+              <div class="round-result-stat-label">Perda</div>
+              <div class="round-result-stat-value" ng-style="{'color': r.penalty > 0 ? '#fbbf24' : '#6ee7b7'}">
+                {{ r.penalty > 0 ? ('-' + r.penalty) : '0' }}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <p style="color: var(--text-muted); margin-top: 20px; font-style: italic;">
