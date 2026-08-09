@@ -547,6 +547,27 @@
       flex-wrap: wrap;
     }
 
+    .player-hand {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 14px 12px 12px;
+      margin-top: 14px;
+    }
+
+    .player-hand .hand-area {
+      margin-top: 0;
+    }
+
+    .player-hand.is-actionable {
+      border-color: rgba(79, 172, 254, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(79, 172, 254, 0.08);
+    }
+
+    .player-hand.is-waiting {
+      opacity: 0.92;
+    }
+
     .history-button {
       background: transparent;
       border: 1px solid var(--primary-color);
@@ -982,6 +1003,39 @@
         height: 104px;
       }
 
+      .player-hand {
+        padding: 12px 8px 10px;
+        border-radius: 14px;
+        margin-top: 12px;
+      }
+
+      .player-hand .hand-area {
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .player-hand.has-many-cards .hand-area {
+        gap: 6px;
+      }
+
+      .player-hand.has-many-cards .playing-card {
+        width: 66px;
+        height: 96px;
+      }
+
+      .player-hand.has-many-cards .playing-card .top-left,
+      .player-hand.has-many-cards .playing-card .bottom-right {
+        font-size: 0.92rem;
+      }
+
+      .player-hand.has-many-cards .playing-card div[style*="font-size: 2.5rem"] {
+        font-size: 2.15rem !important;
+      }
+
+      .player-hand .playing-card:not(.disabled-card) {
+        touch-action: manipulation;
+      }
+
       .turn-banner {
         margin-top: 14px;
         padding: 11px 12px;
@@ -1280,12 +1334,20 @@
       <div class="turn-banner" ng-class="isMyTurn && roomStatus === 'PLAYING' ? 'is-turn' : 'is-waiting'">
         {{ roomStatus === 'PLAYING' ? (isMyTurn ? 'Sua vez: escolha uma carta.' : 'Aguarde. O outro jogador está escolhendo a carta.') : (isMyTurn ? 'Sua vez de apostar.' : 'Aguarde. Os outros jogadores ainda estão fazendo as apostas.') }}
       </div>
-      <div class="hand-area">
+      <div
+        class="player-hand"
+        ng-class="{
+          'is-actionable': isMyTurn && roomStatus === 'PLAYING',
+          'is-waiting': !isMyTurn || roomStatus !== 'PLAYING',
+          'has-many-cards': myHand.length >= 5
+        }">
+        <div class="hand-area">
         <div class="playing-card" ng-class="{'disabled-card': !isMyTurn || roomStatus !== 'PLAYING'}" ng-style="{'color': getCardColor(card.suit)}" ng-repeat="card in myHand track by $index" ng-click="playCard(card)">
           <div class="top-left">{{ card.value }}</div>
           <div style="font-size: 2.5rem; margin-top: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">{{ getSuitSymbol(card.suit) }}</div>
           <div class="bottom-right">{{ card.value }}</div>
         </div>
+      </div>
       </div>
 
       <div class="waiting-turn" ng-if="false && roomStatus === 'PLAYING' && !isMyTurn">
