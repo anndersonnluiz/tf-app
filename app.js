@@ -70,6 +70,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
   }
 
+  function getMyPlayerState() {
+    return ($scope.playerStates || []).find(function(player) {
+      return player.name === $scope.data.playerName.trim();
+    });
+  }
+
   function syncTurnState(data) {
     updatePlayerStates(data && data.playerStates);
 
@@ -86,12 +92,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
         $scope.betValue = minimumBet;
       }
     }
-  }
-
-  function getMyPlayerState() {
-    return ($scope.playerStates || []).find(function(player) {
-      return player.name === $scope.data.playerName.trim();
-    });
   }
 
   function getMaxBetValue() {
@@ -150,7 +150,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   $scope.toggleHistory = function() {
     if (!$scope.roundHistory || !$scope.roundHistory.length) {
-      showMessage('O histÃ³rico aparece depois que a primeira vaza Ã© resolvida.', 'error');
+      showMessage('O histórico aparece depois que a primeira vaza é resolvida.', 'error');
       return;
     }
 
@@ -355,11 +355,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     } else {
       $scope.toastMessage =
         data.winnerName +
-        ' levou a mão com ' +
+        ' venceu a vaza com ' +
         data.winningCard.value +
         ' ' +
-        $scope.getSuitSymbol(data.winningCard.suit) +
-        '!';
+        $scope.getSuitSymbol(data.winningCard.suit);
       $scope.toastClass = 'neon-blue';
 
       if ($scope.tableCards) {
@@ -375,7 +374,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
     $timeout(function() {
       $scope.toastMessage = null;
-    }, 2500);
+    }, 2200);
   });
 
   socket.on('player_eliminated', function(data) {
