@@ -309,6 +309,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   });
 
   socket.on('round_started', function(data) {
+    $scope.players = data.players || $scope.players;
     $scope.currentView = 'table';
     $scope.roomStatus = 'BETTING';
     $scope.currentRound = data.round || 1;
@@ -426,6 +427,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   });
 
   socket.on('new_round_started', function(data) {
+    $scope.players = data.players || $scope.players;
     $scope.currentView = 'table';
     $scope.roomStatus = 'BETTING';
     $scope.currentRound = data.round || ($scope.currentRound + 1);
