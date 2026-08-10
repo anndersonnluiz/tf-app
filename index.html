@@ -1379,6 +1379,18 @@
         <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
       </div>
 
+      <div class="room-status-banner" ng-if="reconnectPrompt">
+        <div class="room-status-title">Sala anterior encontrada</div>
+        <div class="room-status-copy">
+          Encontramos uma sessão salva da sala <strong>{{ reconnectPrompt.roomCode }}</strong> para <strong>{{ reconnectPrompt.playerName }}</strong>.
+          Você quer voltar para essa sala ou começar normalmente?
+        </div>
+        <div class="actions" style="margin-top: 14px;">
+          <button class="btn btn-primary" ng-click="resumeSavedSession()">Voltar para a sala</button>
+          <button class="btn btn-secondary" ng-click="dismissSavedSession()">Ignorar</button>
+        </div>
+      </div>
+
       <div class="actions">
         <button class="btn btn-primary" ng-click="quickMatch()">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>

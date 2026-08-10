@@ -82,6 +82,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
   $scope.message = '';
   $scope.messageType = 'success';
+  $scope.reconnectPrompt = null;
 
   var messageTimeout;
 
@@ -124,6 +125,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     var savedSession = getSavedSession();
 
     if (!savedSession || !savedSession.roomCode || !savedSession.playerName || !savedSession.playerId) {
+      $scope.reconnectPrompt = null;
       return;
     }
 
@@ -131,7 +133,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       $scope.data.playerName = savedSession.playerName;
     }
 
-    socket.emit('reconnect_room', savedSession);
+    $scope.reconnectPrompt = savedSession;
   }
 
   function updatePlayerStates(playerStates) {
@@ -221,8 +223,25 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.gameOver = null;
     resetRematchState();
     $scope.message = '';
+    $scope.reconnectPrompt = null;
     clearSession();
   }
+
+  $scope.resumeSavedSession = function() {
+    if (!$scope.reconnectPrompt) {
+      return;
+    }
+
+    $scope.data.playerName = $scope.reconnectPrompt.playerName;
+    savePlayerName();
+    socket.emit('reconnect_room', $scope.reconnectPrompt);
+    $scope.reconnectPrompt = null;
+  };
+
+  $scope.dismissSavedSession = function() {
+    $scope.reconnectPrompt = null;
+    clearSession();
+  };
 
   $scope.closeHistory = function() {
     $scope.showHistoryPanel = false;
@@ -370,6 +389,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    $scope.reconnectPrompt = null;
     saveSession();
     showMessage('Sala criada com sucesso!', 'success');
   });
@@ -378,6 +398,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    $scope.reconnectPrompt = null;
     saveSession();
     showMessage('Conectado à sala com sucesso!', 'success');
   });
@@ -568,6 +589,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       $scope.currentView = 'table';
     }
 
+    $scope.reconnectPrompt = null;
     saveSession();
     showMessage('Sua sessão foi restaurada.', 'success');
   });
