@@ -433,6 +433,7 @@
       border-radius: 14px;
       padding: 14px;
       min-height: 132px;
+      scroll-margin-top: 18px;
     }
 
     .status-card.is-turn {
@@ -599,6 +600,7 @@
       font-weight: 600;
       text-align: center;
       border: 1px solid transparent;
+      line-height: 1.4;
     }
 
     .turn-banner.is-turn {
@@ -719,6 +721,7 @@
       width: 100%;
       border: 1px solid var(--border-color);
       margin-bottom: 16px;
+      text-align: left;
     }
 
     .history-item {
@@ -726,6 +729,7 @@
       border-bottom: 1px solid #333;
       color: white;
       text-align: left;
+      line-height: 1.45;
     }
 
     .history-item:last-child {
@@ -818,6 +822,7 @@
       pointer-events: none;
       animation: popIn 0.25s ease-out;
       backdrop-filter: blur(6px);
+      word-break: break-word;
     }
 
     .neon-red {
@@ -999,22 +1004,23 @@
 
     @media (max-width: 640px) {
       body {
-        padding: 12px;
+        padding: 10px;
       }
 
       .lobby-container {
         max-width: none;
-        margin: 8px 0;
-        padding: 28px 20px;
-        border-radius: 14px;
+        margin: 0;
+        padding: 22px 14px 18px;
+        border-radius: 12px;
+        box-shadow: 0 16px 28px rgba(0, 0, 0, 0.5);
       }
 
       .logo {
-        margin-bottom: 20px;
+        margin-bottom: 18px;
       }
 
       .logo img {
-        width: min(100%, 170px);
+        width: min(100%, 150px);
       }
 
       .btn {
@@ -1033,8 +1039,9 @@
       }
 
       .room-code-display {
-        font-size: 2rem;
-        letter-spacing: 3px;
+        font-size: 1.7rem;
+        letter-spacing: 2px;
+        padding: 12px 10px;
       }
 
       .room-summary {
@@ -1073,6 +1080,7 @@
 
       .status-board-grid {
         grid-template-columns: 1fr;
+        gap: 10px;
       }
 
       .round-snapshot {
@@ -1111,25 +1119,27 @@
       }
 
       .status-card {
-        padding: 14px;
+        padding: 12px;
         min-height: auto;
       }
 
       .status-card-top {
         margin-bottom: 10px;
+        align-items: flex-start;
       }
 
       .status-card-name {
-        font-size: 1rem;
+        font-size: 0.96rem;
+        line-height: 1.25;
       }
 
       .status-card-row {
         margin-bottom: 0;
-        font-size: 0.92rem;
+        font-size: 0.88rem;
       }
 
       .status-card-stats {
-        gap: 8px 10px;
+        gap: 6px 10px;
       }
 
       .table-area-head {
@@ -1138,13 +1148,17 @@
         margin-bottom: 12px;
       }
 
+      .table-area-head h3 {
+        text-align: center;
+      }
+
       .history-button {
         width: 100%;
       }
 
       .table-surface {
         min-height: 110px;
-        padding: 14px 12px 22px;
+        padding: 12px 10px 18px;
       }
 
       .table-surface.is-empty {
@@ -1157,33 +1171,33 @@
       }
 
       .table-cards {
-        gap: 8px;
+        gap: 6px;
         justify-content: center;
       }
 
       .table-card-slot {
-        min-width: 64px;
-        gap: 6px;
+        min-width: 58px;
+        gap: 5px;
       }
 
       .table-card-slot .playing-card {
-        width: 62px;
-        height: 90px;
+        width: 56px;
+        height: 82px;
       }
 
       .table-card-slot .playing-card .top-left,
       .table-card-slot .playing-card .bottom-right {
-        font-size: 0.86rem;
+        font-size: 0.8rem;
       }
 
       .table-card-slot .playing-card div[style*="font-size: 2.5rem"] {
-        font-size: 2rem !important;
+        font-size: 1.7rem !important;
       }
 
       .table-card-player {
-        max-width: 68px;
-        padding: 3px 6px;
-        font-size: 0.68rem;
+        max-width: 60px;
+        padding: 3px 5px;
+        font-size: 0.62rem;
       }
 
       .hand-area {
@@ -1192,58 +1206,72 @@
       }
 
       .hand-area .playing-card {
-        width: 72px;
-        height: 104px;
+        width: 64px;
+        height: 96px;
       }
 
       .player-hand {
-        padding: 12px 8px 10px;
+        padding: 12px 6px 8px;
         border-radius: 14px;
         margin-top: 12px;
       }
 
       .player-hand .hand-area {
         justify-content: center;
-        gap: 8px;
-      }
-
-      .player-hand.has-many-cards .hand-area {
         gap: 6px;
       }
 
+      .player-hand.has-many-cards .hand-area {
+        gap: 4px;
+      }
+
       .player-hand.has-many-cards .playing-card {
-        width: 66px;
-        height: 96px;
+        width: 58px;
+        height: 88px;
       }
 
       .player-hand.has-many-cards .playing-card .top-left,
       .player-hand.has-many-cards .playing-card .bottom-right {
-        font-size: 0.92rem;
+        font-size: 0.82rem;
       }
 
       .player-hand.has-many-cards .playing-card div[style*="font-size: 2.5rem"] {
-        font-size: 2.15rem !important;
+        font-size: 1.85rem !important;
       }
 
       .player-hand .playing-card:not(.disabled-card) {
         touch-action: manipulation;
       }
 
+      .player-hand .playing-card .top-left,
+      .player-hand .playing-card .bottom-right {
+        font-size: 0.88rem;
+      }
+
+      .player-hand .playing-card div[style*="font-size: 2.5rem"] {
+        font-size: 1.95rem !important;
+      }
+
       .turn-banner {
         margin-top: 14px;
-        padding: 11px 12px;
-        font-size: 0.92rem;
+        padding: 12px 10px;
+        font-size: 0.88rem;
+        line-height: 1.45;
       }
 
       .history-panel {
-        padding: 16px;
+        padding: 14px 12px;
+      }
+
+      .history-item {
+        font-size: 0.9rem;
       }
 
       .toast-overlay {
-        top: 74px;
+        top: 68px;
         width: min(calc(100vw - 24px), 320px);
         padding: 11px 14px;
-        font-size: 0.94rem;
+        font-size: 0.9rem;
         border-radius: 12px;
       }
 
@@ -1490,7 +1518,7 @@
       <div class="status-board" ng-if="playerStates.length > 0">
         <div class="status-board-header">
           <h3>Acompanhe a rodada</h3>
-          <span>Veja quem apostou, quantas cartas restam e quem está na vez.</span>
+          <span>{{ getStatusBoardHint() }}</span>
         </div>
 
         <div class="status-board-grid">
@@ -1510,19 +1538,19 @@
               </div>
 
               <div class="status-card-row">
-                <span class="status-card-label">Fez</span>
+                <span class="status-card-label">Vazas</span>
                 <span class="status-card-value">{{ player.tricksWon }}</span>
               </div>
 
               <div class="status-card-row">
-                <span class="status-card-label">Cartas</span>
+                <span class="status-card-label">Na mão</span>
                 <span class="status-card-value">{{ player.cardsInHand }}</span>
               </div>
 
               <div class="status-card-row">
                 <span class="status-card-label">Aposta</span>
                 <span class="status-card-value" ng-if="player.hasBet">{{ player.bet }}</span>
-                <span class="status-card-waiting" ng-if="!player.hasBet">Aguardando</span>
+                <span class="status-card-waiting" ng-if="!player.hasBet">Ainda não apostou</span>
               </div>
             </div>
           </div>
@@ -1549,7 +1577,7 @@
 
         <div class="table-surface" ng-class="{'is-empty': tableCards.length === 0}">
           <div class="empty-table-copy" ng-if="tableCards.length === 0">
-            Nenhuma carta foi jogada ainda. Assim que a vaza começar, as cartas aparecem aqui.
+            As cartas jogadas nesta vaza aparecem aqui.
           </div>
           <div class="table-cards">
             <div class="table-card-slot" ng-repeat="tc in tableCards track by $index">
@@ -1566,7 +1594,7 @@
 
       <h3 style="font-size: 1rem; color: var(--text-muted); text-align: left; margin-top: 30px;">Sua mão</h3>
       <div class="turn-banner" ng-class="isMyTurn && roomStatus === 'PLAYING' ? 'is-turn' : 'is-waiting'">
-        {{ roomStatus === 'PLAYING' ? (isMyTurn ? 'Sua vez: escolha uma carta.' : 'Aguarde. O outro jogador está escolhendo a carta.') : (isMyTurn ? 'Sua vez de apostar.' : 'Aguarde. Os outros jogadores ainda estão fazendo as apostas.') }}
+        {{ getTurnBannerMessage() }}
       </div>
       <div
         class="player-hand"
@@ -1611,7 +1639,7 @@
     <div ng-if="currentView === 'round_results'" class="round-results-view">
       <h2>Resultado da rodada</h2>
       <div class="round-results-summary">
-        Confira quem acertou a aposta, quem perdeu vida e quem segue forte para a próxima rodada.
+        Veja quem bateu a aposta, quem perdeu vida e como cada jogador terminou a rodada.
       </div>
       <div class="round-results-panel">
         <div class="round-results-head">
@@ -1676,7 +1704,7 @@
         <strong class="game-over-winner">{{ gameOver.winner }}</strong> é o grande vencedor!
       </p>
       <div class="game-over-status" ng-if="rematch.totalPlayers > 0">
-        <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores confirmaram nova partida.
+        <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores já confirmaram que querem jogar de novo.
         <div ng-if="rematch.acceptedPlayers.length">
           Confirmados: {{ rematch.acceptedPlayers.join(', ') }}
         </div>

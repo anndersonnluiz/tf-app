@@ -594,6 +594,30 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return 'Rodada';
   };
 
+  $scope.getStatusBoardHint = function() {
+    if ($scope.roomStatus === 'BETTING') {
+      return 'Acompanhe quem já apostou, quantas cartas cada pessoa tem e quem fala agora.';
+    }
+
+    return 'Acompanhe quem está na vez, quantas cartas restam e quantas vazas cada jogador já fez.';
+  };
+
+  $scope.getTurnBannerMessage = function() {
+    if ($scope.roomStatus === 'PLAYING') {
+      return $scope.isMyTurn
+        ? 'Sua vez de jogar. Escolha uma carta da sua mão.'
+        : 'Aguarde um instante. O outro jogador está escolhendo a carta.';
+    }
+
+    if ($scope.roomStatus === 'BETTING') {
+      return $scope.isMyTurn
+        ? 'Sua vez de apostar. Escolha quantas vazas você acha que vai fazer.'
+        : 'Aguarde. Os outros jogadores ainda estão definindo as apostas.';
+    }
+
+    return 'A rodada está em andamento.';
+  };
+
   $scope.getCompletedTricks = function() {
     return ($scope.roundHistory || []).length;
   };
