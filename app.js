@@ -106,6 +106,39 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     window.localStorage.removeItem(sessionStorageKey);
   }
 
+  function clearReconnectPrompt() {
+    $scope.reconnectPrompt = null;
+  }
+
+  function resetToLoginState(clearSavedSession) {
+    $scope.currentView = 'login';
+    $scope.currentRoomCode = '';
+    $scope.players = [];
+    $scope.playerStates = [];
+    $scope.currentRound = 0;
+    $scope.currentTrump = null;
+    $scope.cardsPerPlayer = 5;
+    $scope.myHand = [];
+    $scope.tableCards = [];
+    $scope.roomStatus = '';
+    $scope.isMyTurn = false;
+    $scope.pendingPlayCard = null;
+    $scope.betValue = 0;
+    $scope.betError = '';
+    $scope.roundHistory = [];
+    $scope.showHistoryPanel = false;
+    $scope.toastMessage = null;
+    $scope.toastClass = '';
+    $scope.roundResults = [];
+    $scope.gameOver = null;
+    resetRematchState();
+    clearReconnectPrompt();
+
+    if (clearSavedSession) {
+      clearSession();
+    }
+  }
+
   function getSavedSession() {
     var rawValue = window.localStorage.getItem(sessionStorageKey);
 
@@ -201,30 +234,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   }
 
   function resetToLobby() {
-    $scope.currentView = 'login';
-    $scope.currentRoomCode = '';
-    $scope.players = [];
-    $scope.playerStates = [];
-    $scope.currentRound = 0;
-    $scope.currentTrump = null;
-    $scope.cardsPerPlayer = 5;
-    $scope.myHand = [];
-    $scope.tableCards = [];
-    $scope.roomStatus = '';
-    $scope.isMyTurn = false;
-    $scope.pendingPlayCard = null;
-    $scope.betValue = 0;
-    $scope.betError = '';
-    $scope.roundHistory = [];
-    $scope.showHistoryPanel = false;
-    $scope.toastMessage = null;
-    $scope.toastClass = '';
-    $scope.roundResults = [];
-    $scope.gameOver = null;
-    resetRematchState();
+    resetToLoginState(true);
     $scope.message = '';
-    $scope.reconnectPrompt = null;
-    clearSession();
   }
 
   $scope.resumeSavedSession = function() {
@@ -239,7 +250,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.dismissSavedSession = function() {
-    $scope.reconnectPrompt = null;
+    clearReconnectPrompt();
     clearSession();
   };
 
@@ -389,7 +400,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
-    $scope.reconnectPrompt = null;
+    clearReconnectPrompt();
     saveSession();
     showMessage('Sala criada com sucesso!', 'success');
   });
@@ -398,7 +409,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
-    $scope.reconnectPrompt = null;
+    clearReconnectPrompt();
     saveSession();
     showMessage('Conectado à sala com sucesso!', 'success');
   });
@@ -589,7 +600,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       $scope.currentView = 'table';
     }
 
-    $scope.reconnectPrompt = null;
+    clearReconnectPrompt();
     saveSession();
     showMessage('Sua sessão foi restaurada.', 'success');
   });
@@ -606,15 +617,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   });
 
   socket.on('match_cancelled', function(data) {
-    $scope.currentView = 'room';
-    $scope.tableCards = [];
-    $scope.myHand = [];
-    $scope.roundHistory = [];
-    $scope.roundResults = [];
-    $scope.gameOver = null;
-    $scope.pendingPlayCard = null;
-    $scope.roomStatus = 'WAITING';
-    $scope.isMyTurn = false;
+    resetToLoginState(true);
     showMessage(data.message || 'A partida foi cancelada e a sala voltou para o lobby.', 'error');
   });
 
@@ -624,6 +627,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('player_disconnected', function(data) {
     showMessage(data.message || 'Um jogador ficou offline.', 'error');
+  });
+
+  socket.on('room_closed', function(data) {
+    resetToLoginState(true);
+    showMessage(data.message || 'A sala foi encerrada.', 'error');
   });
 
   socket.on('rematch_updated', function(data) {
@@ -642,6 +650,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('error', function(data) {
     $scope.pendingPlayCard = null;
+
+    if (data && data.message === 'Não foi possível restaurar a sua sessão.') {
+      clearSession();
+      clearReconnectPrompt();
+    }
+
     showMessage(data.message, 'error');
   });
 
