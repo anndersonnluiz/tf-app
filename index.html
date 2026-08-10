@@ -499,8 +499,18 @@
     }
 
     .status-card-waiting {
-      color: var(--warning-text);
-      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      color: #fbbf24;
+      font-weight: 700;
+      font-size: 0.74rem;
+      line-height: 1;
+      white-space: nowrap;
     }
 
     .playing-card {
@@ -1142,6 +1152,11 @@
         gap: 6px 10px;
       }
 
+      .status-card-waiting {
+        padding: 3px 7px;
+        font-size: 0.68rem;
+      }
+
       .table-area-head {
         flex-direction: column;
         align-items: stretch;
@@ -1550,7 +1565,7 @@
               <div class="status-card-row">
                 <span class="status-card-label">Aposta</span>
                 <span class="status-card-value" ng-if="player.hasBet">{{ player.bet }}</span>
-                <span class="status-card-waiting" ng-if="!player.hasBet">Ainda não apostou</span>
+                <span class="status-card-waiting" ng-if="!player.hasBet">Pendente</span>
               </div>
             </div>
           </div>
