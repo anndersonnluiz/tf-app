@@ -212,6 +212,32 @@
       margin-bottom: 28px;
     }
 
+    .top-tools {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tool-button {
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tool-button:hover {
+      border-color: rgba(79, 172, 254, 0.32);
+      background: rgba(79, 172, 254, 0.08);
+    }
+
     .room-code-display {
       font-size: 2.5rem;
       font-weight: 700;
@@ -993,6 +1019,91 @@
       color: var(--text-main);
     }
 
+    .game-over-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 auto 18px;
+      max-width: 520px;
+    }
+
+    .game-over-summary-card {
+      padding: 14px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.16);
+    }
+
+    .game-over-summary-label {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .game-over-summary-value {
+      color: var(--text-main);
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .game-over-ranking {
+      max-width: 520px;
+      margin: 0 auto 22px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    .game-over-ranking-title {
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 4px 6px 10px;
+    }
+
+    .game-over-ranking-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+      margin-bottom: 8px;
+    }
+
+    .game-over-ranking-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .game-over-ranking-item.is-winner {
+      border: 1px solid rgba(245, 158, 11, 0.32);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .game-over-ranking-position {
+      color: var(--warning-text);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .game-over-ranking-name {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .game-over-ranking-stat {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -1052,6 +1163,16 @@
         font-size: 1.7rem;
         letter-spacing: 2px;
         padding: 12px 10px;
+      }
+
+      .top-tools {
+        justify-content: stretch;
+        gap: 8px;
+      }
+
+      .tool-button {
+        flex: 1 1 0;
+        text-align: center;
       }
 
       .room-summary {
@@ -1403,6 +1524,39 @@
         font-size: 0.92rem;
         padding: 12px 14px;
       }
+
+      .game-over-summary {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .game-over-summary-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+      }
+
+      .game-over-summary-label {
+        margin-bottom: 0;
+      }
+
+      .game-over-summary-value {
+        font-size: 1rem;
+      }
+
+      .game-over-ranking {
+        padding: 8px;
+      }
+
+      .game-over-ranking-item {
+        grid-template-columns: auto 1fr;
+        gap: 8px 12px;
+      }
+
+      .game-over-ranking-stat {
+        white-space: normal;
+      }
     }
   </style>
 </head>
@@ -1412,6 +1566,15 @@
   </div>
 
   <div class="lobby-container">
+    <div class="top-tools">
+      <button type="button" class="tool-button" ng-click="toggleSound()">
+        {{ getSoundButtonLabel() }}
+      </button>
+      <button type="button" class="tool-button" ng-click="openHelpPage()">
+        Como jogar
+      </button>
+    </div>
+
     <div class="logo">
       <img src="./assets/logo-tf-transparent.png" alt="TF Tenha Fé">
     </div>
@@ -1718,6 +1881,32 @@
       <p class="game-over-text">
         <strong class="game-over-winner">{{ gameOver.winner }}</strong> é o grande vencedor!
       </p>
+      <div class="game-over-summary" ng-if="gameSummary">
+        <div class="game-over-summary-card">
+          <div class="game-over-summary-label">Campeão</div>
+          <div class="game-over-summary-value">{{ gameSummary.champion ? gameSummary.champion.name : '-' }}</div>
+        </div>
+        <div class="game-over-summary-card">
+          <div class="game-over-summary-label">Rodadas</div>
+          <div class="game-over-summary-value">{{ gameSummary.totalRounds }}</div>
+        </div>
+        <div class="game-over-summary-card">
+          <div class="game-over-summary-label">Jogadores</div>
+          <div class="game-over-summary-value">{{ gameSummary.players.length }}</div>
+        </div>
+      </div>
+      <div class="game-over-ranking" ng-if="gameSummary && gameSummary.players.length">
+        <div class="game-over-ranking-title">Classificação final</div>
+        <div
+          class="game-over-ranking-item"
+          ng-class="{'is-winner': isGameWinner(player.name)}"
+          ng-repeat="player in gameSummary.players track by $index">
+          <div class="game-over-ranking-position">#{{ $index + 1 }}</div>
+          <div class="game-over-ranking-name">{{ player.name }}</div>
+          <div class="game-over-ranking-stat">{{ player.lives }} vidas</div>
+          <div class="game-over-ranking-stat">{{ player.tricksWon }} vazas</div>
+        </div>
+      </div>
       <div class="game-over-status" ng-if="rematch.totalPlayers > 0">
         <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores já confirmaram que querem jogar de novo.
         <div ng-if="rematch.acceptedPlayers.length">

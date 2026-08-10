@@ -5,6 +5,12 @@ function getApiBaseUrl() {
   return configuredUrl.replace(/\/$/, '');
 }
 
+function getHelpPageUrl() {
+  return window.TF_HELP_URL ||
+    new URLSearchParams(window.location.search).get('helpUrl') ||
+    'https://anndersonnluiz.github.io/tf-landing-page/';
+}
+
 function getRoomCodeFromUrl() {
   var roomCode = new URLSearchParams(window.location.search).get('roomCode');
   return roomCode ? roomCode.trim().toUpperCase() : '';
@@ -72,11 +78,204 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
   $scope.message = '';
   $scope.messageType = 'success';
+  $scope.soundEnabled = window.localStorage.getItem('tfSoundEnabled') !== 'false';
+  $scope.gameSummary = null;
 
   var messageTimeout;
+  var audioContext = null;
+  var lastTurnAlertKey = '';
+  var hasUnlockedAudio = false;
 
   function savePlayerName() {
     window.localStorage.setItem('tfPlayerName', ($scope.data.playerName || '').trim());
+  }
+
+  function saveSoundPreference() {
+    window.localStorage.setItem('tfSoundEnabled', String($scope.soundEnabled));
+  }
+
+  function getAudioContext() {
+    if (!audioContext) {
+      var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) {
+        return null;
+      }
+
+      audioContext = new AudioContextClass();
+    }
+
+    return audioContext;
+  }
+
+  function unlockAudio() {
+    var context = getAudioContext();
+
+    if (!context) {
+      return Promise.resolve(false);
+    }
+
+    if (context.state === 'running') {
+      hasUnlockedAudio = true;
+      return Promise.resolve(true);
+    }
+
+    return context.resume()
+      .then(function() {
+        hasUnlockedAudio = true;
+        return true;
+      })
+      .catch(function() {
+        return false;
+      });
+  }
+
+  function playToneSequence(sequence, options) {
+    if (!$scope.soundEnabled || !hasUnlockedAudio) {
+      return;
+    }
+
+    var context = getAudioContext();
+    if (!context || context.state !== 'running') {
+      return;
+    }
+
+    var settings = options || {};
+    var startAt = context.currentTime + (settings.delay || 0);
+    var masterGain = context.createGain();
+    masterGain.gain.value = settings.volume || 0.045;
+    masterGain.connect(context.destination);
+
+    sequence.forEach(function(note, index) {
+      var oscillator = context.createOscillator();
+      var gainNode = context.createGain();
+      var noteStart = startAt + (note.at || 0);
+      var duration = note.duration || 0.12;
+      var noteEnd = noteStart + duration;
+
+      oscillator.type = note.type || settings.type || 'sine';
+      oscillator.frequency.setValueAtTime(note.frequency, noteStart);
+      if (note.slideTo) {
+        oscillator.frequency.linearRampToValueAtTime(note.slideTo, noteEnd);
+      }
+
+      gainNode.gain.setValueAtTime(0.0001, noteStart);
+      gainNode.gain.linearRampToValueAtTime(note.gain || 0.9, noteStart + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(masterGain);
+      oscillator.start(noteStart);
+      oscillator.stop(noteEnd + 0.02 + (index * 0.001));
+    });
+  }
+
+  function playSound(type, payload) {
+    if (!$scope.soundEnabled) {
+      return;
+    }
+
+    switch (type) {
+      case 'turn':
+        playToneSequence([
+          { frequency: 587.33, duration: 0.11, at: 0, type: 'triangle' },
+          { frequency: 783.99, duration: 0.16, at: 0.12, type: 'triangle' }
+        ], { volume: 0.04 });
+        break;
+      case 'cardPlayed':
+        playToneSequence([
+          { frequency: 246.94, duration: 0.05, at: 0, type: 'square', gain: 0.55 },
+          { frequency: 329.63, duration: 0.07, at: 0.04, type: 'triangle', gain: 0.45 }
+        ], { volume: 0.04 });
+        break;
+      case 'betReady':
+        playToneSequence([
+          { frequency: 440, duration: 0.08, at: 0, type: 'triangle' },
+          { frequency: 523.25, duration: 0.12, at: 0.09, type: 'triangle' }
+        ], { volume: 0.035 });
+        break;
+      case 'trickTie':
+        playToneSequence([
+          { frequency: 210, duration: 0.08, at: 0, type: 'sawtooth', gain: 0.5 },
+          { frequency: 180, duration: 0.1, at: 0.1, type: 'sawtooth', gain: 0.45 }
+        ], { volume: 0.05 });
+        break;
+      case 'trickWon':
+        playToneSequence([
+          { frequency: 523.25, duration: 0.08, at: 0, type: 'triangle' },
+          { frequency: 659.25, duration: 0.1, at: 0.09, type: 'triangle' },
+          { frequency: 783.99, duration: 0.16, at: 0.2, type: 'triangle' }
+        ], { volume: payload && payload.isMine ? 0.05 : 0.035 });
+        break;
+      case 'roundStart':
+        playToneSequence([
+          { frequency: 392, duration: 0.08, at: 0, type: 'sine' },
+          { frequency: 523.25, duration: 0.1, at: 0.08, type: 'sine' },
+          { frequency: 659.25, duration: 0.14, at: 0.18, type: 'sine' }
+        ], { volume: 0.038 });
+        break;
+      case 'gameWon':
+        playToneSequence([
+          { frequency: 523.25, duration: 0.12, at: 0, type: 'triangle' },
+          { frequency: 659.25, duration: 0.12, at: 0.11, type: 'triangle' },
+          { frequency: 783.99, duration: 0.14, at: 0.22, type: 'triangle' },
+          { frequency: 1046.5, duration: 0.28, at: 0.36, type: 'triangle' }
+        ], { volume: 0.05 });
+        break;
+      case 'gameLost':
+        playToneSequence([
+          { frequency: 392, duration: 0.12, at: 0, type: 'sine' },
+          { frequency: 329.63, duration: 0.14, at: 0.12, type: 'sine' },
+          { frequency: 261.63, duration: 0.24, at: 0.27, type: 'sine' }
+        ], { volume: 0.04 });
+        break;
+      default:
+        break;
+    }
+  }
+
+  function buildTurnAlertKey() {
+    return [
+      $scope.currentView,
+      $scope.roomStatus,
+      $scope.currentRound,
+      $scope.isMyTurn ? 'mine' : 'wait',
+      ($scope.myHand || []).length
+    ].join(':');
+  }
+
+  function maybePlayTurnAlert() {
+    if (!$scope.isMyTurn) {
+      lastTurnAlertKey = '';
+      return;
+    }
+
+    if ($scope.roomStatus !== 'BETTING' && $scope.roomStatus !== 'PLAYING') {
+      return;
+    }
+
+    var alertKey = buildTurnAlertKey();
+    if (alertKey === lastTurnAlertKey) {
+      return;
+    }
+
+    lastTurnAlertKey = alertKey;
+    playSound($scope.roomStatus === 'BETTING' ? 'betReady' : 'turn');
+  }
+
+  function buildGameSummary(playerStates) {
+    var ranking = (playerStates || []).slice().sort(function(a, b) {
+      if ((b.lives || 0) !== (a.lives || 0)) {
+        return (b.lives || 0) - (a.lives || 0);
+      }
+
+      return (b.tricksWon || 0) - (a.tricksWon || 0);
+    });
+
+    return {
+      totalRounds: $scope.currentRound || 0,
+      players: ranking,
+      champion: ranking.length ? ranking[0] : null
+    };
   }
 
   function updateUrlWithRoomCode(roomCode) {
@@ -118,6 +317,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.toastClass = '';
     $scope.roundResults = [];
     $scope.gameOver = null;
+    $scope.gameSummary = null;
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -160,6 +360,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
         $scope.betValue = minimumBet;
       }
     }
+
+    maybePlayTurnAlert();
   }
 
   function getMaxBetValue() {
@@ -204,6 +406,23 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return $scope.currentRoomCode ? getInviteLink($scope.currentRoomCode) : '';
   };
 
+  $scope.toggleSound = function() {
+    $scope.soundEnabled = !$scope.soundEnabled;
+    saveSoundPreference();
+
+    if ($scope.soundEnabled) {
+      unlockAudio().then(function(unlocked) {
+        if (unlocked) {
+          playSound('turn');
+        }
+      });
+    }
+  };
+
+  $scope.openHelpPage = function() {
+    window.open(getHelpPageUrl(), '_blank', 'noopener');
+  };
+
   $scope.closeHistory = function() {
     $scope.showHistoryPanel = false;
   };
@@ -222,6 +441,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    unlockAudio();
     $scope.rematch.hasRequested = true;
     socket.emit('request_rematch', { roomCode: $scope.currentRoomCode });
   };
@@ -239,6 +459,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     savePlayerName();
+    unlockAudio();
     socket.emit('quick_match', { playerName: $scope.data.playerName.trim() });
   };
 
@@ -249,6 +470,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     savePlayerName();
+    unlockAudio();
     socket.emit('create_room', {
       playerName: $scope.data.playerName.trim(),
       isPrivate: true
@@ -267,6 +489,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     savePlayerName();
+    unlockAudio();
     socket.emit('join_room', {
       playerName: $scope.data.playerName.trim(),
       roomCode: $scope.data.roomCodeInput.trim().toUpperCase()
@@ -283,6 +506,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    unlockAudio();
     socket.emit('start_game', { roomCode: $scope.currentRoomCode });
   };
 
@@ -313,6 +537,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    unlockAudio();
     socket.emit('make_bet', {
       roomCode: $scope.currentRoomCode,
       bet: $scope.betValue
@@ -324,6 +549,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    unlockAudio();
+    playSound('cardPlayed');
     $scope.pendingPlayCard = card;
     $scope.isMyTurn = false;
 
@@ -367,6 +594,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
+    $scope.gameSummary = null;
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -376,6 +604,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
+    playSound('roundStart');
     showMessage('Fase de apostas iniciada!', 'success');
   });
 
@@ -438,6 +667,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     if (data.isTie) {
       $scope.toastMessage = 'Bucha! ' + data.starterName + ' mantém a vez.';
       $scope.toastClass = 'neon-red';
+      playSound('trickTie');
     } else {
       $scope.toastMessage =
         data.winnerName +
@@ -456,6 +686,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
           winningCard.isWinner = true;
         }
       }
+
+      playSound('trickWon', {
+        isMine: data.winnerName === $scope.data.playerName.trim()
+      });
     }
 
     $timeout(function() {
@@ -492,6 +726,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundResults = [];
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
+    $scope.gameSummary = null;
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -500,6 +735,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     };
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
+    playSound('roundStart');
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
     showMessage('Nova rodada começou!', 'success');
   });
@@ -507,6 +743,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   socket.on('game_over', function(data) {
     $scope.currentView = 'game_over';
     $scope.gameOver = data;
+    $scope.gameSummary = buildGameSummary(data.playerStates);
     $scope.pendingPlayCard = null;
     $scope.showHistoryPanel = false;
     updatePlayerStates(data.playerStates);
@@ -516,6 +753,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       requestedBy: '',
       hasRequested: false
     };
+    playSound(data.winner === $scope.data.playerName.trim() ? 'gameWon' : 'gameLost');
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
 
@@ -652,6 +890,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     return 'Perdeu vida';
+  };
+
+  $scope.getSoundButtonLabel = function() {
+    return $scope.soundEnabled ? 'Som ligado' : 'Som desligado';
+  };
+
+  $scope.isGameWinner = function(playerName) {
+    return !!($scope.gameOver && $scope.gameOver.winner === playerName);
   };
 
   $scope.isRoomOwner = function(player) {
