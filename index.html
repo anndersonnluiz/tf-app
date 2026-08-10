@@ -1412,6 +1412,17 @@
         <div class="room-code-display">{{ currentRoomCode }}</div>
       </div>
 
+      <div class="room-status-banner ready">
+        <div class="room-status-title">Convite rápido</div>
+        <div class="room-status-copy">
+          Compartilhe o link abaixo para a outra pessoa abrir o jogo com o código da sala já preenchido.
+        </div>
+        <div class="room-actions" style="margin-top: 14px;">
+          <input type="text" ng-value="getInviteLink()" readonly>
+          <button class="btn btn-secondary" ng-click="copyInviteLink()">Copiar link</button>
+        </div>
+      </div>
+
       <div class="room-summary">
         <div class="room-summary-card">
           <div class="room-summary-label">Jogadores</div>

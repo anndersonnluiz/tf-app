@@ -18,6 +18,11 @@ function getStoredPlayerId() {
   return newId;
 }
 
+function getRoomCodeFromUrl() {
+  var roomCode = new URLSearchParams(window.location.search).get('roomCode');
+  return roomCode ? roomCode.trim().toUpperCase() : '';
+}
+
 app.factory('socket', function($rootScope) {
   var socket = io.connect(getApiBaseUrl());
 
@@ -49,10 +54,11 @@ app.factory('socket', function($rootScope) {
 app.controller('LobbyController', function($scope, $timeout, socket) {
   var playerId = getStoredPlayerId();
   var sessionStorageKey = 'tfSession';
+  var invitedRoomCode = getRoomCodeFromUrl();
   $scope.currentView = 'login';
   $scope.data = {
     playerName: window.localStorage.getItem('tfPlayerName') || '',
-    roomCodeInput: ''
+    roomCodeInput: invitedRoomCode
   };
 
   $scope.currentRoomCode = '';
@@ -110,6 +116,24 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.reconnectPrompt = null;
   }
 
+  function updateUrlWithRoomCode(roomCode) {
+    var url = new URL(window.location.href);
+
+    if (roomCode) {
+      url.searchParams.set('roomCode', roomCode);
+    } else {
+      url.searchParams.delete('roomCode');
+    }
+
+    window.history.replaceState({}, '', url.toString());
+  }
+
+  function getInviteLink(roomCode) {
+    var url = new URL(window.location.href);
+    url.searchParams.set('roomCode', roomCode);
+    return url.toString();
+  }
+
   function resetToLoginState(clearSavedSession) {
     $scope.currentView = 'login';
     $scope.currentRoomCode = '';
@@ -133,6 +157,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.gameOver = null;
     resetRematchState();
     clearReconnectPrompt();
+    $scope.data.roomCodeInput = getRoomCodeFromUrl();
 
     if (clearSavedSession) {
       clearSession();
@@ -237,6 +262,31 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     resetToLoginState(true);
     $scope.message = '';
   }
+
+  $scope.copyInviteLink = function() {
+    if (!$scope.currentRoomCode) {
+      return;
+    }
+
+    var inviteLink = getInviteLink($scope.currentRoomCode);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inviteLink)
+        .then(function() {
+          showMessage('Link de convite copiado!', 'success');
+        })
+        .catch(function() {
+          showMessage('Não foi possível copiar o link agora.', 'error');
+        });
+      return;
+    }
+
+    showMessage('Copie este link: ' + inviteLink, 'success');
+  };
+
+  $scope.getInviteLink = function() {
+    return $scope.currentRoomCode ? getInviteLink($scope.currentRoomCode) : '';
+  };
 
   $scope.resumeSavedSession = function() {
     if (!$scope.reconnectPrompt) {
@@ -400,6 +450,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    updateUrlWithRoomCode(data.roomCode);
     clearReconnectPrompt();
     saveSession();
     showMessage('Sala criada com sucesso!', 'success');
@@ -409,6 +460,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    updateUrlWithRoomCode(data.roomCode);
     clearReconnectPrompt();
     saveSession();
     showMessage('Conectado à sala com sucesso!', 'success');
@@ -574,6 +626,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('session_restored', function(data) {
     $scope.currentRoomCode = data.roomCode || $scope.currentRoomCode;
+    updateUrlWithRoomCode($scope.currentRoomCode);
     $scope.players = data.players || [];
     $scope.currentRound = data.round || 0;
     $scope.currentTrump = data.trump || null;
@@ -618,6 +671,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('match_cancelled', function(data) {
     resetToLoginState(true);
+    updateUrlWithRoomCode('');
     showMessage(data.message || 'A partida foi cancelada e a sala voltou para o lobby.', 'error');
   });
 
@@ -631,6 +685,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('room_closed', function(data) {
     resetToLoginState(true);
+    updateUrlWithRoomCode('');
     showMessage(data.message || 'A sala foi encerrada.', 'error');
   });
 
@@ -654,6 +709,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     if (data && data.message === 'Não foi possível restaurar a sua sessão.') {
       clearSession();
       clearReconnectPrompt();
+      updateUrlWithRoomCode('');
     }
 
     showMessage(data.message, 'error');
