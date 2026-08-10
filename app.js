@@ -5,19 +5,6 @@ function getApiBaseUrl() {
   return configuredUrl.replace(/\/$/, '');
 }
 
-function getStoredPlayerId() {
-  var storageKey = 'tfPlayerId';
-  var existingId = window.localStorage.getItem(storageKey);
-
-  if (existingId) {
-    return existingId;
-  }
-
-  var newId = 'player-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-  window.localStorage.setItem(storageKey, newId);
-  return newId;
-}
-
 function getRoomCodeFromUrl() {
   var roomCode = new URLSearchParams(window.location.search).get('roomCode');
   return roomCode ? roomCode.trim().toUpperCase() : '';
@@ -52,13 +39,10 @@ app.factory('socket', function($rootScope) {
 });
 
 app.controller('LobbyController', function($scope, $timeout, socket) {
-  var playerId = getStoredPlayerId();
-  var sessionStorageKey = 'tfSession';
-  var invitedRoomCode = getRoomCodeFromUrl();
   $scope.currentView = 'login';
   $scope.data = {
     playerName: window.localStorage.getItem('tfPlayerName') || '',
-    roomCodeInput: invitedRoomCode
+    roomCodeInput: getRoomCodeFromUrl()
   };
 
   $scope.currentRoomCode = '';
@@ -88,32 +72,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
   $scope.message = '';
   $scope.messageType = 'success';
-  $scope.reconnectPrompt = null;
 
   var messageTimeout;
 
   function savePlayerName() {
     window.localStorage.setItem('tfPlayerName', ($scope.data.playerName || '').trim());
-  }
-
-  function saveSession() {
-    if (!$scope.currentRoomCode || !$scope.data.playerName || !$scope.data.playerName.trim()) {
-      return;
-    }
-
-    window.localStorage.setItem(sessionStorageKey, JSON.stringify({
-      roomCode: $scope.currentRoomCode,
-      playerName: $scope.data.playerName.trim(),
-      playerId: playerId
-    }));
-  }
-
-  function clearSession() {
-    window.localStorage.removeItem(sessionStorageKey);
-  }
-
-  function clearReconnectPrompt() {
-    $scope.reconnectPrompt = null;
   }
 
   function updateUrlWithRoomCode(roomCode) {
@@ -134,7 +97,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return url.toString();
   }
 
-  function resetToLoginState(clearSavedSession) {
+  function resetToLobby() {
     $scope.currentView = 'login';
     $scope.currentRoomCode = '';
     $scope.players = [];
@@ -155,43 +118,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.toastClass = '';
     $scope.roundResults = [];
     $scope.gameOver = null;
-    resetRematchState();
-    clearReconnectPrompt();
+    $scope.rematch = {
+      acceptedPlayers: [],
+      totalPlayers: 0,
+      requestedBy: '',
+      hasRequested: false
+    };
+    $scope.message = '';
     $scope.data.roomCodeInput = getRoomCodeFromUrl();
-
-    if (clearSavedSession) {
-      clearSession();
-    }
-  }
-
-  function getSavedSession() {
-    var rawValue = window.localStorage.getItem(sessionStorageKey);
-
-    if (!rawValue) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(rawValue);
-    } catch (_error) {
-      clearSession();
-      return null;
-    }
-  }
-
-  function restoreSessionIfNeeded() {
-    var savedSession = getSavedSession();
-
-    if (!savedSession || !savedSession.roomCode || !savedSession.playerName || !savedSession.playerId) {
-      $scope.reconnectPrompt = null;
-      return;
-    }
-
-    if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
-      $scope.data.playerName = savedSession.playerName;
-    }
-
-    $scope.reconnectPrompt = savedSession;
   }
 
   function updatePlayerStates(playerStates) {
@@ -204,19 +138,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return ($scope.playerStates || []).find(function(player) {
       return player.name === $scope.data.playerName.trim();
     });
-  }
-
-  function createEmptyRematchState() {
-    return {
-      acceptedPlayers: [],
-      totalPlayers: 0,
-      requestedBy: '',
-      hasRequested: false
-    };
-  }
-
-  function resetRematchState() {
-    $scope.rematch = createEmptyRematchState();
   }
 
   function syncTurnState(data) {
@@ -258,11 +179,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }, 4000);
   }
 
-  function resetToLobby() {
-    resetToLoginState(true);
-    $scope.message = '';
-  }
-
   $scope.copyInviteLink = function() {
     if (!$scope.currentRoomCode) {
       return;
@@ -288,35 +204,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return $scope.currentRoomCode ? getInviteLink($scope.currentRoomCode) : '';
   };
 
-  $scope.resumeSavedSession = function() {
-    if (!$scope.reconnectPrompt) {
-      return;
-    }
-
-    $scope.data.playerName = $scope.reconnectPrompt.playerName;
-    savePlayerName();
-    socket.emit('reconnect_room', $scope.reconnectPrompt);
-    $scope.reconnectPrompt = null;
-  };
-
-  $scope.dismissSavedSession = function() {
-    clearReconnectPrompt();
-    clearSession();
-    updateUrlWithRoomCode('');
-    $scope.data.roomCodeInput = '';
-  };
-
   $scope.closeHistory = function() {
     $scope.showHistoryPanel = false;
-  };
-
-  $scope.openHistory = function() {
-    if (!$scope.roundHistory || !$scope.roundHistory.length) {
-      showMessage('O histórico aparece depois que a primeira vaza é resolvida.', 'error');
-      return;
-    }
-
-    $scope.showHistoryPanel = true;
   };
 
   $scope.toggleHistory = function() {
@@ -338,6 +227,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.leaveToLobby = function() {
+    updateUrlWithRoomCode('');
     resetToLobby();
     showMessage('Você voltou para a tela inicial.', 'success');
   };
@@ -349,10 +239,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     savePlayerName();
-    socket.emit('quick_match', {
-      playerName: $scope.data.playerName.trim(),
-      playerId: playerId
-    });
+    socket.emit('quick_match', { playerName: $scope.data.playerName.trim() });
   };
 
   $scope.createRoom = function() {
@@ -364,7 +251,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     savePlayerName();
     socket.emit('create_room', {
       playerName: $scope.data.playerName.trim(),
-      playerId: playerId,
       isPrivate: true
     });
   };
@@ -383,7 +269,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     savePlayerName();
     socket.emit('join_room', {
       playerName: $scope.data.playerName.trim(),
-      playerId: playerId,
       roomCode: $scope.data.roomCodeInput.trim().toUpperCase()
     });
   };
@@ -453,8 +338,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     updateUrlWithRoomCode(data.roomCode);
-    clearReconnectPrompt();
-    saveSession();
     showMessage('Sala criada com sucesso!', 'success');
   });
 
@@ -463,16 +346,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     updateUrlWithRoomCode(data.roomCode);
-    clearReconnectPrompt();
-    saveSession();
     showMessage('Conectado à sala com sucesso!', 'success');
   });
 
   socket.on('room_updated', function(data) {
     $scope.players = data.players || [];
-    if ($scope.currentRoomCode) {
-      saveSession();
-    }
     syncTurnState(data);
   });
 
@@ -489,7 +367,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.tableCards = [];
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
-    resetRematchState();
+    $scope.rematch = {
+      acceptedPlayers: [],
+      totalPlayers: 0,
+      requestedBy: '',
+      hasRequested: false
+    };
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -609,7 +492,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundResults = [];
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
-    resetRematchState();
+    $scope.rematch = {
+      acceptedPlayers: [],
+      totalPlayers: 0,
+      requestedBy: '',
+      hasRequested: false
+    };
     syncTurnState(data);
     var myPlayerState = getMyPlayerState();
     $scope.betValue = myPlayerState ? (myPlayerState.guaranteedTricks || 0) : 0;
@@ -622,72 +510,22 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.pendingPlayCard = null;
     $scope.showHistoryPanel = false;
     updatePlayerStates(data.playerStates);
-    resetRematchState();
+    $scope.rematch = {
+      acceptedPlayers: [],
+      totalPlayers: 0,
+      requestedBy: '',
+      hasRequested: false
+    };
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
-  });
-
-  socket.on('session_restored', function(data) {
-    $scope.currentRoomCode = data.roomCode || $scope.currentRoomCode;
-    updateUrlWithRoomCode($scope.currentRoomCode);
-    $scope.players = data.players || [];
-    $scope.currentRound = data.round || 0;
-    $scope.currentTrump = data.trump || null;
-    $scope.cardsPerPlayer = data.cardsPerPlayer || 0;
-    $scope.tableCards = data.tableCards || [];
-    $scope.roundHistory = data.history || [];
-    $scope.myHand = data.hand || [];
-    $scope.roundResults = data.roundResults || [];
-    $scope.gameOver = data.gameOver || null;
-    $scope.pendingPlayCard = null;
-    $scope.showHistoryPanel = false;
-    $scope.rematch.acceptedPlayers = (data.rematch && data.rematch.acceptedPlayers) || [];
-    $scope.rematch.totalPlayers = (data.rematch && data.rematch.totalPlayers) || 0;
-
-    syncTurnState(data);
-
-    if (data.status === 'WAITING') {
-      $scope.currentView = 'room';
-    } else if (data.status === 'GAME_OVER' && data.gameOver) {
-      $scope.currentView = 'game_over';
-    } else if (data.status === 'ROUND_END' && $scope.roundResults.length) {
-      $scope.currentView = 'round_results';
-    } else {
-      $scope.currentView = 'table';
-    }
-
-    clearReconnectPrompt();
-    saveSession();
-    showMessage('Sua sessão foi restaurada.', 'success');
-  });
-
-  socket.on('room_paused', function(data) {
-    $scope.pendingPlayCard = null;
-    $scope.isMyTurn = false;
-    $scope.roomStatus = 'PAUSED';
-    showMessage(data.message || 'A partida foi pausada.', 'error');
-  });
-
-  socket.on('match_resumed', function(data) {
-    showMessage(data.message || 'A partida foi retomada.', 'success');
-  });
-
-  socket.on('match_cancelled', function(data) {
-    resetToLoginState(true);
-    updateUrlWithRoomCode('');
-    showMessage(data.message || 'A partida foi cancelada e a sala voltou para o lobby.', 'error');
   });
 
   socket.on('player_removed', function(data) {
     showMessage(data.message || 'Um jogador saiu da sala.', 'error');
   });
 
-  socket.on('player_disconnected', function(data) {
-    showMessage(data.message || 'Um jogador ficou offline.', 'error');
-  });
-
   socket.on('room_closed', function(data) {
-    resetToLoginState(true);
     updateUrlWithRoomCode('');
+    resetToLobby();
     showMessage(data.message || 'A sala foi encerrada.', 'error');
   });
 
@@ -707,18 +545,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('error', function(data) {
     $scope.pendingPlayCard = null;
-
-    if (data && data.message === 'Não foi possível restaurar a sua sessão.') {
-      clearSession();
-      clearReconnectPrompt();
-      updateUrlWithRoomCode('');
-    }
-
     showMessage(data.message, 'error');
-  });
-
-  socket.on('connect', function() {
-    restoreSessionIfNeeded();
   });
 
   $scope.getSuitSymbol = function(suit) {
@@ -762,10 +589,6 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
     if ($scope.roomStatus === 'RESOLVING_TRICK') {
       return 'Fechando vaza';
-    }
-
-    if ($scope.roomStatus === 'PAUSED') {
-      return 'Partida pausada';
     }
 
     return 'Rodada';
@@ -816,22 +639,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.canStartMatch = function() {
-    return ($scope.players || []).filter(function(player) {
-      return player.connected !== false;
-    }).length >= 2;
+    return ($scope.players || []).length >= 2;
   };
 
   $scope.getRoomStatusLabel = function() {
-    var totalPlayers = ($scope.players || []).filter(function(player) {
-      return player.connected !== false;
-    }).length;
+    var totalPlayers = ($scope.players || []).length;
 
     if (totalPlayers < 2) {
       return 'Aguardando mais jogadores';
-    }
-
-    if ($scope.roomStatus === 'PAUSED') {
-      return 'Partida pausada';
     }
 
     return 'Sala pronta para iniciar';
