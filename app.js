@@ -5,6 +5,19 @@ function getApiBaseUrl() {
   return configuredUrl.replace(/\/$/, '');
 }
 
+function getStoredPlayerId() {
+  var storageKey = 'tfPlayerId';
+  var existingId = window.localStorage.getItem(storageKey);
+
+  if (existingId) {
+    return existingId;
+  }
+
+  var newId = 'player-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  window.localStorage.setItem(storageKey, newId);
+  return newId;
+}
+
 app.factory('socket', function($rootScope) {
   var socket = io.connect(getApiBaseUrl());
 
@@ -34,9 +47,11 @@ app.factory('socket', function($rootScope) {
 });
 
 app.controller('LobbyController', function($scope, $timeout, socket) {
+  var playerId = getStoredPlayerId();
+  var sessionStorageKey = 'tfSession';
   $scope.currentView = 'login';
   $scope.data = {
-    playerName: '',
+    playerName: window.localStorage.getItem('tfPlayerName') || '',
     roomCodeInput: ''
   };
 
@@ -69,6 +84,55 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.messageType = 'success';
 
   var messageTimeout;
+
+  function savePlayerName() {
+    window.localStorage.setItem('tfPlayerName', ($scope.data.playerName || '').trim());
+  }
+
+  function saveSession() {
+    if (!$scope.currentRoomCode || !$scope.data.playerName || !$scope.data.playerName.trim()) {
+      return;
+    }
+
+    window.localStorage.setItem(sessionStorageKey, JSON.stringify({
+      roomCode: $scope.currentRoomCode,
+      playerName: $scope.data.playerName.trim(),
+      playerId: playerId
+    }));
+  }
+
+  function clearSession() {
+    window.localStorage.removeItem(sessionStorageKey);
+  }
+
+  function getSavedSession() {
+    var rawValue = window.localStorage.getItem(sessionStorageKey);
+
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(rawValue);
+    } catch (_error) {
+      clearSession();
+      return null;
+    }
+  }
+
+  function restoreSessionIfNeeded() {
+    var savedSession = getSavedSession();
+
+    if (!savedSession || !savedSession.roomCode || !savedSession.playerName || !savedSession.playerId) {
+      return;
+    }
+
+    if (!$scope.data.playerName || !$scope.data.playerName.trim()) {
+      $scope.data.playerName = savedSession.playerName;
+    }
+
+    socket.emit('reconnect_room', savedSession);
+  }
 
   function updatePlayerStates(playerStates) {
     if (playerStates) {
@@ -157,6 +221,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.gameOver = null;
     resetRematchState();
     $scope.message = '';
+    clearSession();
   }
 
   $scope.closeHistory = function() {
@@ -201,7 +266,11 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
-    socket.emit('quick_match', { playerName: $scope.data.playerName.trim() });
+    savePlayerName();
+    socket.emit('quick_match', {
+      playerName: $scope.data.playerName.trim(),
+      playerId: playerId
+    });
   };
 
   $scope.createRoom = function() {
@@ -210,8 +279,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    savePlayerName();
     socket.emit('create_room', {
       playerName: $scope.data.playerName.trim(),
+      playerId: playerId,
       isPrivate: true
     });
   };
@@ -227,8 +298,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return;
     }
 
+    savePlayerName();
     socket.emit('join_room', {
       playerName: $scope.data.playerName.trim(),
+      playerId: playerId,
       roomCode: $scope.data.roomCodeInput.trim().toUpperCase()
     });
   };
@@ -297,6 +370,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    saveSession();
     showMessage('Sala criada com sucesso!', 'success');
   });
 
@@ -304,11 +378,15 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.showHistoryPanel = false;
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
+    saveSession();
     showMessage('Conectado à sala com sucesso!', 'success');
   });
 
   socket.on('room_updated', function(data) {
     $scope.players = data.players || [];
+    if ($scope.currentRoomCode) {
+      saveSession();
+    }
     syncTurnState(data);
   });
 
@@ -462,6 +540,70 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     showMessage('Fim de jogo! Vencedor: ' + data.winner, 'success');
   });
 
+  socket.on('session_restored', function(data) {
+    $scope.currentRoomCode = data.roomCode || $scope.currentRoomCode;
+    $scope.players = data.players || [];
+    $scope.currentRound = data.round || 0;
+    $scope.currentTrump = data.trump || null;
+    $scope.cardsPerPlayer = data.cardsPerPlayer || 0;
+    $scope.tableCards = data.tableCards || [];
+    $scope.roundHistory = data.history || [];
+    $scope.myHand = data.hand || [];
+    $scope.roundResults = data.roundResults || [];
+    $scope.gameOver = data.gameOver || null;
+    $scope.pendingPlayCard = null;
+    $scope.showHistoryPanel = false;
+    $scope.rematch.acceptedPlayers = (data.rematch && data.rematch.acceptedPlayers) || [];
+    $scope.rematch.totalPlayers = (data.rematch && data.rematch.totalPlayers) || 0;
+
+    syncTurnState(data);
+
+    if (data.status === 'WAITING') {
+      $scope.currentView = 'room';
+    } else if (data.status === 'GAME_OVER' && data.gameOver) {
+      $scope.currentView = 'game_over';
+    } else if (data.status === 'ROUND_END' && $scope.roundResults.length) {
+      $scope.currentView = 'round_results';
+    } else {
+      $scope.currentView = 'table';
+    }
+
+    saveSession();
+    showMessage('Sua sessão foi restaurada.', 'success');
+  });
+
+  socket.on('room_paused', function(data) {
+    $scope.pendingPlayCard = null;
+    $scope.isMyTurn = false;
+    $scope.roomStatus = 'PAUSED';
+    showMessage(data.message || 'A partida foi pausada.', 'error');
+  });
+
+  socket.on('match_resumed', function(data) {
+    showMessage(data.message || 'A partida foi retomada.', 'success');
+  });
+
+  socket.on('match_cancelled', function(data) {
+    $scope.currentView = 'room';
+    $scope.tableCards = [];
+    $scope.myHand = [];
+    $scope.roundHistory = [];
+    $scope.roundResults = [];
+    $scope.gameOver = null;
+    $scope.pendingPlayCard = null;
+    $scope.roomStatus = 'WAITING';
+    $scope.isMyTurn = false;
+    showMessage(data.message || 'A partida foi cancelada e a sala voltou para o lobby.', 'error');
+  });
+
+  socket.on('player_removed', function(data) {
+    showMessage(data.message || 'Um jogador saiu da sala.', 'error');
+  });
+
+  socket.on('player_disconnected', function(data) {
+    showMessage(data.message || 'Um jogador ficou offline.', 'error');
+  });
+
   socket.on('rematch_updated', function(data) {
     $scope.rematch.acceptedPlayers = data.acceptedPlayers || [];
     $scope.rematch.totalPlayers = data.totalPlayers || 0;
@@ -479,6 +621,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   socket.on('error', function(data) {
     $scope.pendingPlayCard = null;
     showMessage(data.message, 'error');
+  });
+
+  socket.on('connect', function() {
+    restoreSessionIfNeeded();
   });
 
   $scope.getSuitSymbol = function(suit) {
@@ -522,6 +668,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
     if ($scope.roomStatus === 'RESOLVING_TRICK') {
       return 'Fechando vaza';
+    }
+
+    if ($scope.roomStatus === 'PAUSED') {
+      return 'Partida pausada';
     }
 
     return 'Rodada';
@@ -572,14 +722,22 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   };
 
   $scope.canStartMatch = function() {
-    return ($scope.players || []).length >= 2;
+    return ($scope.players || []).filter(function(player) {
+      return player.connected !== false;
+    }).length >= 2;
   };
 
   $scope.getRoomStatusLabel = function() {
-    var totalPlayers = ($scope.players || []).length;
+    var totalPlayers = ($scope.players || []).filter(function(player) {
+      return player.connected !== false;
+    }).length;
 
     if (totalPlayers < 2) {
       return 'Aguardando mais jogadores';
+    }
+
+    if ($scope.roomStatus === 'PAUSED') {
+      return 'Partida pausada';
     }
 
     return 'Sala pronta para iniciar';
