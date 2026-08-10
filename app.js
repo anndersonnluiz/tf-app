@@ -302,6 +302,8 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.dismissSavedSession = function() {
     clearReconnectPrompt();
     clearSession();
+    updateUrlWithRoomCode('');
+    $scope.data.roomCodeInput = '';
   };
 
   $scope.closeHistory = function() {
