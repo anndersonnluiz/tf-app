@@ -80,11 +80,26 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.messageType = 'success';
   $scope.soundEnabled = window.localStorage.getItem('tfSoundEnabled') !== 'false';
   $scope.gameSummary = null;
+  $scope.quickChatOpen = false;
+  $scope.quickChatCooldownUntil = 0;
+  $scope.quickChatFeed = [];
+  $scope.quickChatToast = null;
+  $scope.quickChatEmojis = ['👏', '😅', '🔥', '😎', '🤝', '😬'];
+  $scope.quickChatPhrases = [
+    'Boa!',
+    'Bucha!',
+    'Agora vai.',
+    'Segura essa.',
+    'Tô pensando...',
+    'Última carta!'
+  ];
 
   var messageTimeout;
   var audioContext = null;
   var lastTurnAlertKey = '';
   var hasUnlockedAudio = false;
+  var quickChatCooldownTimer = null;
+  var quickChatToastTimer = null;
 
   function savePlayerName() {
     window.localStorage.setItem('tfPlayerName', ($scope.data.playerName || '').trim());
@@ -228,6 +243,12 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
           { frequency: 261.63, duration: 0.24, at: 0.27, type: 'sine' }
         ], { volume: 0.04 });
         break;
+      case 'quickChat':
+        playToneSequence([
+          { frequency: 740, duration: 0.06, at: 0, type: 'triangle', gain: 0.45 },
+          { frequency: 988, duration: 0.08, at: 0.07, type: 'triangle', gain: 0.38 }
+        ], { volume: payload && payload.isMine ? 0.028 : 0.035 });
+        break;
       default:
         break;
     }
@@ -327,6 +348,31 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return !!(navigator.share && $scope.currentRoomCode);
   }
 
+  function clearQuickChatState() {
+    if (quickChatCooldownTimer) {
+      $timeout.cancel(quickChatCooldownTimer);
+      quickChatCooldownTimer = null;
+    }
+
+    if (quickChatToastTimer) {
+      $timeout.cancel(quickChatToastTimer);
+      quickChatToastTimer = null;
+    }
+
+    $scope.quickChatOpen = false;
+    $scope.quickChatCooldownUntil = 0;
+    $scope.quickChatFeed = [];
+    $scope.quickChatToast = null;
+  }
+
+  function addQuickChatMessage(entry) {
+    if (!entry || !entry.message) {
+      return;
+    }
+
+    $scope.quickChatFeed = ($scope.quickChatFeed || []).concat([entry]).slice(-8);
+  }
+
   function resetToLobby() {
     $scope.currentView = 'login';
     $scope.currentRoomCode = '';
@@ -349,6 +395,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.roundResults = [];
     $scope.gameOver = null;
     $scope.gameSummary = null;
+    clearQuickChatState();
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -513,6 +560,40 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     window.open(getHelpPageUrl(), '_blank', 'noopener');
   };
 
+  $scope.toggleQuickChat = function() {
+    $scope.quickChatOpen = !$scope.quickChatOpen;
+  };
+
+  $scope.closeQuickChat = function() {
+    $scope.quickChatOpen = false;
+  };
+
+  $scope.canSendQuickChat = function() {
+    return !!$scope.currentRoomCode && Date.now() >= $scope.quickChatCooldownUntil;
+  };
+
+  $scope.sendQuickChat = function(message) {
+    if (!$scope.currentRoomCode || !message || !$scope.canSendQuickChat()) {
+      return;
+    }
+
+    unlockAudio();
+    $scope.quickChatCooldownUntil = Date.now() + 1500;
+    if (quickChatCooldownTimer) {
+      $timeout.cancel(quickChatCooldownTimer);
+    }
+
+    quickChatCooldownTimer = $timeout(function() {
+      $scope.quickChatCooldownUntil = 0;
+      quickChatCooldownTimer = null;
+    }, 1500);
+
+    socket.emit('send_quick_chat', {
+      roomCode: $scope.currentRoomCode,
+      message: message
+    });
+  };
+
   $scope.closeHistory = function() {
     $scope.showHistoryPanel = false;
   };
@@ -652,6 +733,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('room_created', function(data) {
     $scope.showHistoryPanel = false;
+    clearQuickChatState();
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     updateUrlWithRoomCode(data.roomCode);
@@ -660,6 +742,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('room_joined', function(data) {
     $scope.showHistoryPanel = false;
+    clearQuickChatState();
     $scope.currentView = 'room';
     $scope.currentRoomCode = data.roomCode;
     updateUrlWithRoomCode(data.roomCode);
@@ -685,6 +768,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
     $scope.gameSummary = null;
+    clearQuickChatState();
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -747,6 +831,40 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   socket.on('history_updated', function(data) {
     $scope.roundHistory = data.history || [];
+  });
+
+  socket.on('quick_chat_received', function(data) {
+    var senderName = data && data.senderName ? data.senderName : 'Jogador';
+    var senderId = data && data.senderId ? data.senderId : '';
+    var message = data && data.message ? data.message : '';
+    var isMine = !!senderId && senderId === socket.id();
+
+    if (!message) {
+      return;
+    }
+
+    addQuickChatMessage({
+      senderName: senderName,
+      message: message,
+      isMine: isMine
+    });
+
+    $scope.quickChatToast = {
+      senderName: isMine ? 'Você' : senderName,
+      message: message,
+      isMine: isMine
+    };
+
+    if (quickChatToastTimer) {
+      $timeout.cancel(quickChatToastTimer);
+    }
+
+    quickChatToastTimer = $timeout(function() {
+      $scope.quickChatToast = null;
+      quickChatToastTimer = null;
+    }, 2200);
+
+    playSound('quickChat', { isMine: isMine });
   });
 
   socket.on('trick_resolved', function(data) {
@@ -817,6 +935,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.pendingPlayCard = null;
     $scope.gameOver = null;
     $scope.gameSummary = null;
+    clearQuickChatState();
     $scope.rematch = {
       acceptedPlayers: [],
       totalPlayers: 0,
@@ -836,6 +955,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     $scope.gameSummary = buildGameSummary(data.playerStates);
     $scope.pendingPlayCard = null;
     $scope.showHistoryPanel = false;
+    $scope.quickChatOpen = false;
     updatePlayerStates(data.playerStates);
     $scope.rematch = {
       acceptedPlayers: [],
@@ -1010,5 +1130,9 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     }
 
     return 'Sala pronta para iniciar';
+  };
+
+  $scope.getQuickChatButtonLabel = function() {
+    return $scope.quickChatOpen ? 'Fechar mensagens' : 'Mensagens rápidas';
   };
 });

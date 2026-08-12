@@ -186,14 +186,14 @@
     .invite-actions {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
       margin-top: 12px;
     }
 
     .invite-actions .btn {
       width: 100%;
-      padding: 12px 14px;
-      font-size: 0.92rem;
+      padding: 10px 12px;
+      font-size: 0.86rem;
     }
 
     .message {
@@ -632,6 +632,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
+      flex-wrap: wrap;
       margin-bottom: 15px;
     }
 
@@ -763,6 +764,26 @@
       opacity: 1;
     }
 
+    .table-tools {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: auto;
+      justify-content: flex-end;
+    }
+
+    .table-tools .btn {
+      min-width: 0;
+    }
+
+    .table-tools .history-button {
+      width: auto;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      line-height: 1.2;
+    }
+
     .history-panel {
       background: var(--surface-bg);
       padding: 20px;
@@ -771,6 +792,126 @@
       border: 1px solid var(--border-color);
       margin-bottom: 16px;
       text-align: left;
+    }
+
+    .quick-chat-panel {
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      padding: 18px;
+      border-radius: 14px;
+      width: 100%;
+      border: 1px solid rgba(79, 172, 254, 0.18);
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .quick-chat-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .quick-chat-head h4 {
+      color: var(--text-main);
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .quick-chat-head p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .quick-chat-close {
+      white-space: nowrap;
+      padding: 10px 12px;
+    }
+
+    .quick-chat-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .quick-chat-section-label {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .quick-chat-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .quick-chat-chip {
+      border: 1px solid rgba(79, 172, 254, 0.24);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .quick-chat-chip:hover:not(:disabled) {
+      border-color: rgba(79, 172, 254, 0.42);
+      background: rgba(79, 172, 254, 0.12);
+    }
+
+    .quick-chat-chip:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .quick-chat-chip.is-emoji {
+      min-width: 52px;
+      text-align: center;
+      font-size: 1.2rem;
+      padding: 10px 12px;
+    }
+
+    .quick-chat-toast {
+      position: sticky;
+      top: 78px;
+      z-index: 12;
+      margin: 0 auto 14px;
+      width: min(100%, 320px);
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(79, 172, 254, 0.92);
+      color: #03141d;
+      box-shadow: 0 14px 26px rgba(79, 172, 254, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      text-align: center;
+      animation: popIn 0.2s ease-out;
+    }
+
+    .quick-chat-toast.is-mine {
+      background: rgba(54, 179, 126, 0.92);
+      box-shadow: 0 14px 26px rgba(54, 179, 126, 0.2);
+    }
+
+    .quick-chat-toast-sender {
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      opacity: 0.78;
+      margin-bottom: 4px;
+    }
+
+    .quick-chat-toast-message {
+      font-size: 1.05rem;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
     }
 
     .history-item {
@@ -1211,7 +1352,13 @@
       }
 
       .invite-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .invite-actions .btn {
+        padding: 9px 10px;
+        font-size: 0.82rem;
       }
 
       .room-code-display {
@@ -1343,7 +1490,29 @@
         text-align: center;
       }
 
+      .table-tools {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .table-tools .btn {
+        width: auto;
+        min-width: 0;
+      }
+
       .history-button {
+        width: auto;
+      }
+
+      .quick-chat-panel {
+        padding: 14px 12px;
+      }
+
+      .quick-chat-head {
+        flex-direction: column;
+      }
+
+      .quick-chat-close {
         width: 100%;
       }
 
@@ -1464,6 +1633,16 @@
         padding: 11px 14px;
         font-size: 0.9rem;
         border-radius: 12px;
+      }
+
+      .quick-chat-toast {
+        top: 64px;
+        width: min(calc(100vw - 24px), 300px);
+        padding: 11px 12px;
+      }
+
+      .quick-chat-toast-message {
+        font-size: 0.98rem;
       }
 
       .round-results-head,
@@ -1806,12 +1985,63 @@
         </div>
       </div>
 
-      <div class="table-area" ng-if="roomStatus === 'PLAYING' || tableCards.length > 0">
+      <div class="table-area">
         <div class="table-area-head">
           <h3>Mesa</h3>
-          <button class="btn history-button" ng-click="toggleHistory()" ng-disabled="roundHistory.length === 0">
-            {{ showHistoryPanel ? 'Ocultar histórico' : 'Histórico' }}
-          </button>
+          <div class="table-tools">
+            <button class="btn history-button" ng-click="toggleQuickChat()">
+              {{ quickChatOpen ? 'Mensagens' : 'Mensagens' }}
+            </button>
+            <button class="btn history-button" ng-click="toggleHistory()" ng-disabled="roundHistory.length === 0">
+              {{ showHistoryPanel ? 'Ocultar histórico' : 'Histórico' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="quick-chat-toast" ng-if="quickChatToast" ng-class="{'is-mine': quickChatToast.isMine}">
+          <div class="quick-chat-toast-sender">{{ quickChatToast.senderName }}</div>
+          <div class="quick-chat-toast-message">{{ quickChatToast.message }}</div>
+        </div>
+
+        <div class="quick-chat-panel" ng-if="quickChatOpen">
+          <div class="quick-chat-head">
+            <div>
+              <h4>Mensagens rápidas</h4>
+              <p>Use frases curtas e emojis para reagir durante a partida sem interromper o jogo.</p>
+            </div>
+            <button type="button" class="btn btn-secondary quick-chat-close" ng-click="closeQuickChat()">Fechar</button>
+          </div>
+
+          <div class="quick-chat-grid">
+            <div>
+              <div class="quick-chat-section-label">Emojis</div>
+              <div class="quick-chat-options">
+                <button
+                  type="button"
+                  class="quick-chat-chip is-emoji"
+                  ng-repeat="emoji in quickChatEmojis track by $index"
+                  ng-click="sendQuickChat(emoji)"
+                  ng-disabled="!canSendQuickChat()">
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="quick-chat-section-label">Frases</div>
+              <div class="quick-chat-options">
+                <button
+                  type="button"
+                  class="quick-chat-chip"
+                  ng-repeat="phrase in quickChatPhrases track by $index"
+                  ng-click="sendQuickChat(phrase)"
+                  ng-disabled="!canSendQuickChat()">
+                  {{ phrase }}
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         <div class="history-panel" ng-if="showHistoryPanel">
