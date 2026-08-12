@@ -124,6 +124,77 @@
       gap: 15px;
     }
 
+    .entry-panel {
+      margin-top: 8px;
+      padding: 16px 14px;
+      border-radius: 16px;
+      text-align: left;
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.16);
+    }
+
+    .entry-panel-title {
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .entry-panel-copy {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .entry-option {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .entry-option + .entry-option {
+      margin-top: 10px;
+    }
+
+    .entry-option-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .entry-option-title {
+      color: var(--text-main);
+      font-size: 0.96rem;
+      font-weight: 700;
+    }
+
+    .entry-option-tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(79, 172, 254, 0.12);
+      color: #7dd3fc;
+      border: 1px solid rgba(79, 172, 254, 0.2);
+      white-space: nowrap;
+    }
+
+    .entry-option-copy {
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+      margin-bottom: 10px;
+    }
+
     .btn {
       padding: 15px;
       border: none;
@@ -1665,6 +1736,20 @@
         text-align: center;
       }
 
+      .entry-panel {
+        padding: 12px 10px;
+      }
+
+      .entry-option {
+        padding: 10px;
+      }
+
+      .entry-option-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+
       .quick-guide-panel {
         padding: 14px 12px;
       }
@@ -2195,17 +2280,49 @@
         <input type="text" id="nickname" ng-model="data.playerName" placeholder="Como quer ser chamado?" autocomplete="off">
       </div>
 
-      <div class="actions">
-        <button class="btn btn-primary" ng-click="quickMatch()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-          Jogar agora
-        </button>
+      <div class="entry-panel">
+        <div class="entry-panel-title">Escolha como quer começar</div>
+        <div class="entry-panel-copy">
+          Abra sua sala ou entre com um código em poucos segundos.
+        </div>
 
-        <button class="btn btn-secondary" ng-click="createRoom()">Criar sala privada</button>
+        <div class="entry-option">
+          <div class="entry-option-head">
+            <div class="entry-option-title">Jogar agora</div>
+            <div class="entry-option-tag">Mais rápido</div>
+          </div>
+          <div class="entry-option-copy">
+            Abre sua sala na hora para você já compartilhar.
+          </div>
+          <button class="btn btn-primary" ng-click="quickMatch()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Jogar agora
+          </button>
+        </div>
 
-        <div class="room-actions">
-          <input type="text" ng-model="data.roomCodeInput" placeholder="CÓDIGO" maxlength="4">
-          <button class="btn btn-secondary" ng-click="joinRoom()">Entrar</button>
+        <div class="entry-option">
+          <div class="entry-option-head">
+            <div class="entry-option-title">Criar sala privada</div>
+            <div class="entry-option-tag">Com amigos</div>
+          </div>
+          <div class="entry-option-copy">
+            Gera um código para montar a partida do seu jeito.
+          </div>
+          <button class="btn btn-secondary" ng-click="createRoom()">Criar sala privada</button>
+        </div>
+
+        <div class="entry-option">
+          <div class="entry-option-head">
+            <div class="entry-option-title">Entrar com código</div>
+            <div class="entry-option-tag">Convite</div>
+          </div>
+          <div class="entry-option-copy">
+            Digite o código de 4 caracteres que te enviaram.
+          </div>
+          <div class="room-actions" style="margin-top: 0;">
+            <input type="text" ng-model="data.roomCodeInput" placeholder="CÓDIGO DA SALA" maxlength="4">
+            <button class="btn btn-secondary" ng-click="joinRoom()">Entrar</button>
+          </div>
         </div>
       </div>
     </div>
