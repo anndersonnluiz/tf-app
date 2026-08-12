@@ -271,10 +271,26 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
       return (b.tricksWon || 0) - (a.tricksWon || 0);
     });
 
+    var mostLives = ranking.length ? ranking[0] : null;
+    var mostTricks = ranking.slice().sort(function(a, b) {
+      if ((b.tricksWon || 0) !== (a.tricksWon || 0)) {
+        return (b.tricksWon || 0) - (a.tricksWon || 0);
+      }
+
+      return (b.lives || 0) - (a.lives || 0);
+    })[0] || null;
+    var survivors = ranking.filter(function(player) {
+      return (player.lives || 0) > 0;
+    });
+    var champion = survivors.length ? survivors[0] : null;
+
     return {
       totalRounds: $scope.currentRound || 0,
       players: ranking,
-      champion: ranking.length ? ranking[0] : null
+      champion: champion,
+      mostLives: survivors.length ? mostLives : null,
+      mostTricks: mostTricks,
+      survivorCount: survivors.length
     };
   }
 

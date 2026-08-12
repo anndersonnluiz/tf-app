@@ -1061,6 +1061,44 @@
       font-weight: 700;
     }
 
+    .game-over-highlights {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 0 auto 18px;
+      max-width: 520px;
+    }
+
+    .game-over-highlight {
+      padding: 16px 14px;
+      border-radius: 16px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .game-over-highlight-label {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .game-over-highlight-value {
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .game-over-highlight-subvalue {
+      color: var(--primary-color);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 6px;
+    }
+
     .game-over-ranking {
       max-width: 520px;
       margin: 0 auto 22px;
@@ -1547,6 +1585,11 @@
         gap: 10px;
       }
 
+      .game-over-highlights {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
       .game-over-summary-card {
         display: flex;
         justify-content: space-between;
@@ -1912,7 +1955,7 @@
       <div class="game-over-summary" ng-if="gameSummary">
         <div class="game-over-summary-card">
           <div class="game-over-summary-label">Campeão</div>
-          <div class="game-over-summary-value">{{ gameSummary.champion ? gameSummary.champion.name : '-' }}</div>
+          <div class="game-over-summary-value">{{ gameSummary.champion ? gameSummary.champion.name : 'Sem campeão' }}</div>
         </div>
         <div class="game-over-summary-card">
           <div class="game-over-summary-label">Rodadas</div>
@@ -1921,6 +1964,22 @@
         <div class="game-over-summary-card">
           <div class="game-over-summary-label">Jogadores</div>
           <div class="game-over-summary-value">{{ gameSummary.players.length }}</div>
+        </div>
+      </div>
+      <div class="game-over-highlights" ng-if="gameSummary">
+        <div class="game-over-highlight">
+          <div class="game-over-highlight-label">Melhor fôlego no fim</div>
+          <div class="game-over-highlight-value">{{ gameSummary.mostLives ? gameSummary.mostLives.name : 'Sem sobreviventes' }}</div>
+          <div class="game-over-highlight-subvalue" ng-if="gameSummary.mostLives">
+            {{ gameSummary.mostLives.lives }} vidas restantes
+          </div>
+        </div>
+        <div class="game-over-highlight">
+          <div class="game-over-highlight-label">Mais vazas no encerramento</div>
+          <div class="game-over-highlight-value">{{ gameSummary.mostTricks ? gameSummary.mostTricks.name : '-' }}</div>
+          <div class="game-over-highlight-subvalue" ng-if="gameSummary.mostTricks">
+            {{ gameSummary.mostTricks.tricksWon }} vazas
+          </div>
         </div>
       </div>
       <div class="game-over-ranking" ng-if="gameSummary && gameSummary.players.length">
@@ -1934,6 +1993,9 @@
           <div class="game-over-ranking-stat">{{ player.lives }} vidas</div>
           <div class="game-over-ranking-stat">{{ player.tricksWon }} vazas</div>
         </div>
+      </div>
+      <div class="game-over-status" ng-if="gameSummary && gameSummary.survivorCount > 0">
+        <strong>{{ gameSummary.survivorCount }}</strong> jogador{{ gameSummary.survivorCount > 1 ? 'es' : '' }} terminou{{ gameSummary.survivorCount > 1 ? 'aram' : '' }} com vidas no fim da partida.
       </div>
       <div class="game-over-status" ng-if="rematch.totalPlayers > 0">
         <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores já confirmaram que querem jogar de novo.
