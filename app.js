@@ -1238,6 +1238,14 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return $scope.players[0].name === ($scope.data.playerName || '').trim();
   };
 
+  $scope.isCurrentUserPlayer = function(player) {
+    if (!player) {
+      return false;
+    }
+
+    return player.name === ($scope.data.playerName || '').trim();
+  };
+
   $scope.getPlayersNeededToStart = function() {
     return Math.max(0, 2 - (($scope.players || []).length));
   };
