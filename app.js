@@ -80,6 +80,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.messageType = 'success';
   $scope.soundEnabled = window.localStorage.getItem('tfSoundEnabled') !== 'false';
   $scope.gameSummary = null;
+  $scope.invitePanelOpen = !window.matchMedia || !window.matchMedia('(max-width: 768px)').matches;
   $scope.quickChatOpen = false;
   $scope.quickChatCooldownUntil = 0;
   $scope.quickChatFeed = [];
@@ -558,6 +559,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   $scope.openHelpPage = function() {
     window.open(getHelpPageUrl(), '_blank', 'noopener');
+  };
+
+  $scope.toggleInvitePanel = function() {
+    $scope.invitePanelOpen = !$scope.invitePanelOpen;
   };
 
   $scope.toggleQuickChat = function() {

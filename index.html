@@ -320,6 +320,32 @@
       text-align: left;
     }
 
+    .room-status-banner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .room-status-toggle {
+      padding: 7px 12px;
+      min-width: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .room-status-toggle:hover {
+      border-color: rgba(79, 172, 254, 0.28);
+      background: rgba(79, 172, 254, 0.1);
+    }
+
     .room-status-banner.ready {
       border-color: rgba(16, 185, 129, 0.28);
       box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.08);
@@ -1403,12 +1429,22 @@
         margin-bottom: 16px;
       }
 
+      .room-status-banner-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
       .room-status-title {
         font-size: 0.94rem;
       }
 
       .room-status-copy {
         font-size: 0.88rem;
+      }
+
+      .room-status-toggle {
+        width: auto;
       }
 
       .status-board-grid {
@@ -1846,24 +1882,31 @@
       </div>
 
       <div class="room-status-banner ready">
-        <div class="room-status-title">Convite rápido</div>
-        <div class="room-status-copy">
-          Compartilhe o link abaixo para a outra pessoa abrir o jogo com o código da sala já preenchido.
+        <div class="room-status-banner-header">
+          <div class="room-status-title">Convite rápido</div>
+          <button type="button" class="room-status-toggle" ng-click="toggleInvitePanel()">
+            {{ invitePanelOpen ? 'Ocultar' : 'Mostrar' }}
+          </button>
         </div>
-        <div class="room-actions" style="margin-top: 14px;">
-          <input type="text" ng-value="getInviteLink()" readonly>
-          <button class="btn btn-secondary" ng-click="copyInviteLink()">Copiar link</button>
-        </div>
-        <div class="invite-actions">
-          <button class="btn btn-primary" ng-click="shareInvite()">
-            {{ canUseNativeShare() ? 'Compartilhar' : 'Copiar convite' }}
-          </button>
-          <button class="btn btn-secondary" ng-click="shareInviteViaWhatsApp()">
-            WhatsApp
-          </button>
-          <button class="btn btn-secondary" ng-click="copyInviteMessage()">
-            Copiar mensagem
-          </button>
+        <div ng-if="invitePanelOpen">
+          <div class="room-status-copy">
+            Compartilhe o link abaixo para a outra pessoa abrir o jogo com o código da sala já preenchido.
+          </div>
+          <div class="room-actions" style="margin-top: 14px;">
+            <input type="text" ng-value="getInviteLink()" readonly>
+            <button class="btn btn-secondary" ng-click="copyInviteLink()">Copiar link</button>
+          </div>
+          <div class="invite-actions">
+            <button class="btn btn-primary" ng-click="shareInvite()">
+              {{ canUseNativeShare() ? 'Compartilhar' : 'Copiar convite' }}
+            </button>
+            <button class="btn btn-secondary" ng-click="shareInviteViaWhatsApp()">
+              WhatsApp
+            </button>
+            <button class="btn btn-secondary" ng-click="copyInviteMessage()">
+              Copiar mensagem
+            </button>
+          </div>
         </div>
       </div>
 
