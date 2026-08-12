@@ -340,6 +340,60 @@
       padding-bottom: 10px;
     }
 
+    .room-start-panel {
+      margin-bottom: 18px;
+      padding: 16px;
+      border-radius: 16px;
+      text-align: left;
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border: 1px solid rgba(79, 172, 254, 0.16);
+    }
+
+    .room-start-title {
+      color: var(--text-main);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .room-start-copy {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .room-start-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .room-start-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .room-start-badge.ready {
+      border-color: rgba(16, 185, 129, 0.24);
+      background: rgba(16, 185, 129, 0.12);
+      color: #6ee7b7;
+    }
+
+    .room-start-badge.owner {
+      border-color: rgba(79, 172, 254, 0.24);
+      background: rgba(79, 172, 254, 0.1);
+      color: #7dd3fc;
+    }
+
     .room-summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1537,6 +1591,10 @@
         gap: 10px;
       }
 
+      .room-start-panel {
+        padding: 14px 12px;
+      }
+
       .room-summary-card {
         display: flex;
         justify-content: space-between;
@@ -2081,6 +2139,19 @@
         </div>
       </div>
 
+      <div class="room-start-panel">
+        <div class="room-start-title">{{ getStartHintTitle() }}</div>
+        <div class="room-start-copy">
+          {{ getStartHintCopy() }}
+        </div>
+        <div class="room-start-badges">
+          <div class="room-start-badge owner" ng-if="isCurrentUserRoomOwner()">Você é o criador</div>
+          <div class="room-start-badge" ng-if="!isCurrentUserRoomOwner()">Aguarde o criador</div>
+          <div class="room-start-badge ready" ng-if="canStartMatch()">Sala pronta</div>
+          <div class="room-start-badge" ng-if="!canStartMatch()">{{ getPlayersNeededToStart() }} jogador{{ getPlayersNeededToStart() > 1 ? 'es' : '' }} faltando</div>
+        </div>
+      </div>
+
       <div class="room-status-banner" ng-class="{'ready': canStartMatch()}">
         <div class="room-status-title">{{ canStartMatch() ? 'Tudo pronto para começar' : 'Falta mais gente na sala' }}</div>
         <div class="room-status-copy">
@@ -2102,11 +2173,14 @@
         </div>
       </div>
 
-      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="!canStartMatch()">
-        Iniciar partida
+      <button class="btn btn-primary" style="width: 100%" ng-click="startGame()" ng-disabled="!canStartMatch() || !isCurrentUserRoomOwner()">
+        {{ getStartButtonLabel() }}
       </button>
       <p ng-if="!canStartMatch()" style="color: var(--text-muted); margin-top: 12px;">
         A partida começa com pelo menos 2 jogadores.
+      </p>
+      <p ng-if="canStartMatch() && !isCurrentUserRoomOwner()" style="color: var(--text-muted); margin-top: 12px;">
+        Só o criador da sala pode iniciar a partida.
       </p>
     </div>
 

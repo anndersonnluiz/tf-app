@@ -1160,6 +1160,50 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return 'Sala pronta para iniciar';
   };
 
+  $scope.isCurrentUserRoomOwner = function() {
+    if (!$scope.players || !$scope.players.length) {
+      return false;
+    }
+
+    return $scope.players[0].name === ($scope.data.playerName || '').trim();
+  };
+
+  $scope.getPlayersNeededToStart = function() {
+    return Math.max(0, 2 - (($scope.players || []).length));
+  };
+
+  $scope.getStartHintTitle = function() {
+    if (!$scope.canStartMatch()) {
+      return 'Falta mais gente na sala';
+    }
+
+    return $scope.isCurrentUserRoomOwner()
+      ? 'Você já pode iniciar'
+      : 'Sala pronta para começar';
+  };
+
+  $scope.getStartHintCopy = function() {
+    var playersNeeded = $scope.getPlayersNeededToStart();
+
+    if (playersNeeded > 0) {
+      return 'Assim que entrar mais ' + playersNeeded + ' jogador' + (playersNeeded > 1 ? 'es' : '') + ', a partida poderá começar.';
+    }
+
+    if ($scope.isCurrentUserRoomOwner()) {
+      return 'Quando quiser, toque em iniciar partida para começar a rodada com quem já entrou.';
+    }
+
+    return 'Agora é só aguardar o criador da sala iniciar a partida.';
+  };
+
+  $scope.getStartButtonLabel = function() {
+    if (!$scope.canStartMatch()) {
+      return 'Aguardando jogadores';
+    }
+
+    return $scope.isCurrentUserRoomOwner() ? 'Iniciar partida' : 'Aguardando o criador';
+  };
+
   $scope.getQuickChatButtonLabel = function() {
     return $scope.quickChatOpen ? 'Fechar mensagens' : 'Mensagens rápidas';
   };
