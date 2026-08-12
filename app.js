@@ -1140,4 +1140,20 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.getQuickChatButtonLabel = function() {
     return $scope.quickChatOpen ? 'Fechar mensagens' : 'Mensagens rápidas';
   };
+
+  $scope.getRematchStatusLabel = function() {
+    if (!$scope.rematch || !$scope.rematch.totalPlayers) {
+      return '';
+    }
+
+    if ($scope.rematch.hasRequested) {
+      return 'Seu pedido foi enviado. Falta a confirmação dos outros jogadores.';
+    }
+
+    if ($scope.rematch.requestedBy) {
+      return $scope.rematch.requestedBy + ' pediu uma nova partida.';
+    }
+
+    return 'Se todos confirmarem, a próxima partida começa automaticamente.';
+  };
 });

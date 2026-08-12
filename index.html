@@ -1199,6 +1199,59 @@
       color: var(--text-main);
     }
 
+    .game-over-status.is-rematch {
+      max-width: 420px;
+      text-align: left;
+      background: linear-gradient(180deg, rgba(79, 172, 254, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+      border-color: rgba(79, 172, 254, 0.16);
+    }
+
+    .game-over-status-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .game-over-status-title {
+      color: var(--text-main);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .game-over-status-progress {
+      color: #7dd3fc;
+      font-size: 0.88rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .game-over-status-copy {
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .game-over-rematch-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .game-over-rematch-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(79, 172, 254, 0.1);
+      border: 1px solid rgba(79, 172, 254, 0.18);
+      color: #d8f0ff;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
     .game-over-summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1795,6 +1848,12 @@
         padding: 12px 14px;
       }
 
+      .game-over-status-head {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+
       .game-over-summary {
         grid-template-columns: 1fr;
         gap: 10px;
@@ -2270,10 +2329,18 @@
       <div class="game-over-status" ng-if="gameSummary && gameSummary.survivorCount > 0">
         <strong>{{ gameSummary.survivorCount }}</strong> jogador{{ gameSummary.survivorCount > 1 ? 'es' : '' }} terminou{{ gameSummary.survivorCount > 1 ? 'aram' : '' }} com vidas no fim da partida.
       </div>
-      <div class="game-over-status" ng-if="rematch.totalPlayers > 0">
-        <strong>{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }}</strong> jogadores já confirmaram que querem jogar de novo.
-        <div ng-if="rematch.acceptedPlayers.length">
-          Confirmados: {{ rematch.acceptedPlayers.join(', ') }}
+      <div class="game-over-status is-rematch" ng-if="rematch.totalPlayers > 0">
+        <div class="game-over-status-head">
+          <div class="game-over-status-title">Nova partida</div>
+          <div class="game-over-status-progress">{{ rematch.acceptedPlayers.length }}/{{ rematch.totalPlayers }} confirmados</div>
+        </div>
+        <div class="game-over-status-copy">
+          {{ getRematchStatusLabel() }}
+        </div>
+        <div class="game-over-rematch-chips" ng-if="rematch.acceptedPlayers.length">
+          <div class="game-over-rematch-chip" ng-repeat="playerName in rematch.acceptedPlayers track by $index">
+            {{ playerName }}
+          </div>
         </div>
       </div>
       <div class="game-over-actions">
