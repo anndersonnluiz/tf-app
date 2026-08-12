@@ -1130,6 +1130,76 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return 'Perdeu vida';
   };
 
+  $scope.getRoundPerfectCount = function() {
+    return ($scope.roundResults || []).filter(function(result) {
+      return result && !result.eliminated && (result.penalty || 0) === 0;
+    }).length;
+  };
+
+  $scope.getRoundPenaltyCount = function() {
+    return ($scope.roundResults || []).filter(function(result) {
+      return result && (result.penalty || 0) > 0;
+    }).length;
+  };
+
+  $scope.getRoundPerfectSummaryLabel = function() {
+    var perfectCount = $scope.getRoundPerfectCount();
+
+    if (perfectCount === 0) {
+      return 'Ninguém acertou';
+    }
+
+    if (perfectCount === 1) {
+      return '1 jogador acertou';
+    }
+
+    return perfectCount + ' jogadores acertaram';
+  };
+
+  $scope.getRoundPenaltySummaryLabel = function() {
+    var penaltyCount = $scope.getRoundPenaltyCount();
+
+    if (penaltyCount === 0) {
+      return 'Sem perda de vida nesta rodada.';
+    }
+
+    if (penaltyCount === 1) {
+      return '1 jogador perdeu vida nesta rodada.';
+    }
+
+    return penaltyCount + ' jogadores perderam vida nesta rodada.';
+  };
+
+  $scope.getRoundStandoutPlayer = function() {
+    var ranking = ($scope.roundResults || []).slice().sort(function(a, b) {
+      if ((a.penalty || 0) !== (b.penalty || 0)) {
+        return (a.penalty || 0) - (b.penalty || 0);
+      }
+
+      if ((b.lives || 0) !== (a.lives || 0)) {
+        return (b.lives || 0) - (a.lives || 0);
+      }
+
+      return (b.tricksWon || 0) - (a.tricksWon || 0);
+    });
+
+    return ranking[0] || null;
+  };
+
+  $scope.getRoundBiggestHitPlayer = function() {
+    var impacted = ($scope.roundResults || []).filter(function(result) {
+      return (result.penalty || 0) > 0;
+    }).sort(function(a, b) {
+      if ((b.penalty || 0) !== (a.penalty || 0)) {
+        return (b.penalty || 0) - (a.penalty || 0);
+      }
+
+      return (a.lives || 0) - (b.lives || 0);
+    });
+
+    return impacted[0] || null;
+  };
+
   $scope.getSoundButtonLabel = function() {
     return $scope.soundEnabled ? 'Som ligado' : 'Som desligado';
   };
