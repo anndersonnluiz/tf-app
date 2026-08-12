@@ -183,6 +183,19 @@
       padding: 0 25px;
     }
 
+    .invite-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .invite-actions .btn {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+    }
+
     .message {
       margin-top: 24px;
       padding: 16px;
@@ -1159,6 +1172,10 @@
         padding: 14px 16px;
       }
 
+      .invite-actions {
+        grid-template-columns: 1fr;
+      }
+
       .room-code-display {
         font-size: 1.7rem;
         letter-spacing: 2px;
@@ -1614,6 +1631,17 @@
         <div class="room-actions" style="margin-top: 14px;">
           <input type="text" ng-value="getInviteLink()" readonly>
           <button class="btn btn-secondary" ng-click="copyInviteLink()">Copiar link</button>
+        </div>
+        <div class="invite-actions">
+          <button class="btn btn-primary" ng-click="shareInvite()">
+            {{ canUseNativeShare() ? 'Compartilhar' : 'Copiar convite' }}
+          </button>
+          <button class="btn btn-secondary" ng-click="shareInviteViaWhatsApp()">
+            WhatsApp
+          </button>
+          <button class="btn btn-secondary" ng-click="copyInviteMessage()">
+            Copiar mensagem
+          </button>
         </div>
       </div>
 

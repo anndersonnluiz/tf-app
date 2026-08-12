@@ -296,6 +296,21 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     return url.toString();
   }
 
+  function getInviteMessage(roomCode) {
+    var inviteLink = getInviteLink(roomCode);
+
+    return [
+      'Bora jogar Tenha Fé?',
+      '',
+      'Entre na minha sala usando este código: ' + roomCode,
+      inviteLink
+    ].join('\n');
+  }
+
+  function canUseNativeShare() {
+    return !!(navigator.share && $scope.currentRoomCode);
+  }
+
   function resetToLobby() {
     $scope.currentView = 'login';
     $scope.currentRoomCode = '';
@@ -404,6 +419,65 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   $scope.getInviteLink = function() {
     return $scope.currentRoomCode ? getInviteLink($scope.currentRoomCode) : '';
+  };
+
+  $scope.copyInviteMessage = function() {
+    if (!$scope.currentRoomCode) {
+      return;
+    }
+
+    var inviteMessage = getInviteMessage($scope.currentRoomCode);
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inviteMessage)
+        .then(function() {
+          showMessage('Mensagem de convite copiada!', 'success');
+        })
+        .catch(function() {
+          showMessage('Não foi possível copiar a mensagem agora.', 'error');
+        });
+      return;
+    }
+
+    showMessage('Copie esta mensagem: ' + inviteMessage, 'success');
+  };
+
+  $scope.canUseNativeShare = function() {
+    return canUseNativeShare();
+  };
+
+  $scope.shareInvite = function() {
+    if (!canUseNativeShare()) {
+      $scope.copyInviteMessage();
+      return;
+    }
+
+    var roomCode = $scope.currentRoomCode;
+    var inviteLink = getInviteLink(roomCode);
+
+    navigator.share({
+      title: 'Tenha Fé',
+      text: 'Bora jogar Tenha Fé? Entre na minha sala com o código ' + roomCode + '.',
+      url: inviteLink
+    }).then(function() {
+      showMessage('Convite compartilhado!', 'success');
+    }).catch(function(error) {
+      if (error && error.name === 'AbortError') {
+        return;
+      }
+
+      $scope.copyInviteMessage();
+    });
+  };
+
+  $scope.shareInviteViaWhatsApp = function() {
+    if (!$scope.currentRoomCode) {
+      return;
+    }
+
+    var inviteMessage = getInviteMessage($scope.currentRoomCode);
+    var whatsappUrl = 'https://wa.me/?text=' + encodeURIComponent(inviteMessage);
+    window.open(whatsappUrl, '_blank', 'noopener');
   };
 
   $scope.toggleSound = function() {
