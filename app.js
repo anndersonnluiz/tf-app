@@ -80,6 +80,7 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
   $scope.messageType = 'success';
   $scope.soundEnabled = window.localStorage.getItem('tfSoundEnabled') !== 'false';
   $scope.gameSummary = null;
+  $scope.quickGuideOpen = false;
   $scope.invitePanelOpen = !window.matchMedia || !window.matchMedia('(max-width: 768px)').matches;
   $scope.quickChatOpen = false;
   $scope.quickChatCooldownUntil = 0;
@@ -93,6 +94,24 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     'Segura essa.',
     'Tô pensando...',
     'Última carta!'
+  ];
+  $scope.quickGuideSteps = [
+    {
+      title: '1. Aposte antes de jogar',
+      text: 'Cada jogador diz quantas vazas acha que vai fazer naquela rodada.'
+    },
+    {
+      title: '2. Veja o trunfo da rodada',
+      text: 'A carta exibida no topo mostra o valor do trunfo. Esse valor ganha das outras cartas.'
+    },
+    {
+      title: '3. Feche a vaza',
+      text: 'Quem jogar a melhor carta leva a vaza. Em empate, dá bucha e a vez continua com quem abriu.'
+    },
+    {
+      title: '4. Proteja suas vidas',
+      text: 'No fim da rodada, quem não bater a aposta perde vidas conforme a diferença.'
+    }
   ];
 
   var messageTimeout;
@@ -559,6 +578,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   $scope.openHelpPage = function() {
     window.open(getHelpPageUrl(), '_blank', 'noopener');
+  };
+
+  $scope.toggleQuickGuide = function() {
+    $scope.quickGuideOpen = !$scope.quickGuideOpen;
   };
 
   $scope.toggleInvitePanel = function() {
@@ -1139,6 +1162,10 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
 
   $scope.getQuickChatButtonLabel = function() {
     return $scope.quickChatOpen ? 'Fechar mensagens' : 'Mensagens rápidas';
+  };
+
+  $scope.getQuickGuideButtonLabel = function() {
+    return $scope.quickGuideOpen ? 'Fechar guia' : 'Guia rápido';
   };
 
   $scope.getRematchStatusLabel = function() {
