@@ -95,6 +95,20 @@ app.controller('LobbyController', function($scope, $timeout, socket) {
     'Tô pensando...',
     'Última carta!'
   ];
+  $scope.quickChatGroups = [
+    {
+      label: 'Provocando',
+      phrases: ['Segura essa.', 'Essa foi por pouco!', 'Aí sim!', 'Essa doeu!']
+    },
+    {
+      label: 'Comemorando',
+      phrases: ['Boa jogada!', 'Tô comemorando!', 'Agora vai.', 'Você consegue!']
+    },
+    {
+      label: 'Reagindo',
+      phrases: ['Foi mal!', 'Quase!', 'Tô pensando...', 'Última carta!']
+    }
+  ];
   $scope.quickGuideSteps = [
     {
       title: '1. Aposte antes de jogar',

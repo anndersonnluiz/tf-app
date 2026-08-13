@@ -1116,6 +1116,18 @@
       gap: 10px;
     }
 
+    .quick-chat-group {
+      margin-top: 12px;
+    }
+
+    .quick-chat-group-label {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
     .quick-chat-chip {
       border: 1px solid rgba(79, 172, 254, 0.24);
       background: rgba(255, 255, 255, 0.04);
@@ -2539,15 +2551,18 @@
 
             <div>
               <div class="quick-chat-section-label">Frases</div>
-              <div class="quick-chat-options">
-                <button
-                  type="button"
-                  class="quick-chat-chip"
-                  ng-repeat="phrase in quickChatPhrases track by $index"
-                  ng-click="sendQuickChat(phrase)"
-                  ng-disabled="!canSendQuickChat()">
-                  {{ phrase }}
-                </button>
+              <div class="quick-chat-group" ng-repeat="group in quickChatGroups track by group.label">
+                <div class="quick-chat-group-label">{{ group.label }}</div>
+                <div class="quick-chat-options">
+                  <button
+                    type="button"
+                    class="quick-chat-chip"
+                    ng-repeat="phrase in group.phrases track by $index"
+                    ng-click="sendQuickChat(phrase)"
+                    ng-disabled="!canSendQuickChat()">
+                    {{ phrase }}
+                  </button>
+                </div>
               </div>
             </div>
 
